@@ -186,10 +186,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import GlobalModal from "../pages/shared/GlobalModal.vue";
+import GlobalModal from "@/pages/shared/GlobalModal.vue";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
-import { useAppContextStore } from "../stores/appContext";
+import { useAppContextStore } from "@/stores/appContext";
 
 const route = useRoute();
 const display = useDisplay();

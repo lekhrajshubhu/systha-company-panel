@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { TENANTPANEL_ACCOUNT_KEY, clearAuthSession as clearCompanyAuth } from "../services/companyAuth";
+import { TENANTPANEL_ACCOUNT_KEY, clearAuthSession as clearCompanyAuth, stopTokenAutoRefresh } from "@/services/companyAuth";
+import { logoutCompany } from "@/services/auth.api";
 import { useRouter } from "vue-router";
 
 export interface User {
@@ -73,13 +74,24 @@ export const useAppContextStore = defineStore("appContext", () => {
     }
   }
 
-  function logout() {
+  const clearLocalContext = async () => {
+    stopTokenAutoRefresh();
     clearCompanyAuth();
-    router.push({ name: "company.login" });
+    await router.push({ name: "company.login" });
     user.value = null;
     context.value = null;
     menuGroups.value = [];
-  }
+  };
+
+  const logout = async () => {
+    try {
+      await logoutCompany();
+    } catch (error) {
+      console.error("Failed to logout from server:", error);
+    } finally {
+      await clearLocalContext();
+    }
+  };
 
   return {
     user,

@@ -8,7 +8,7 @@ use Illuminate\Routing\Controller;
 use Systha\Core\Http\Concerns\HandlesApiResources;
 use Systha\Core\Models\CompanyUser;
 
-class CompanyMemberController extends Controller
+class CompanyUserController extends Controller
 {
     use HandlesApiResources;
 
@@ -68,7 +68,7 @@ class CompanyMemberController extends Controller
             ->first();
 
         if (!$member) {
-            return response()->json(['message' => 'Member not found.'], 404);
+            return response()->json(['message' => 'User not found.'], 404);
         }
 
         $name = trim(($member->fname ?? '') . ' ' . ($member->lname ?? ''));

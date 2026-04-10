@@ -89,7 +89,7 @@
 import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getCompanyMembers } from '../../services/members.api'
+import { getCompanyUsers } from '@/services/users.api'
 
 interface MemberItem {
   id: number
@@ -133,7 +133,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
       params.sort_order = sortBy[0].order
     }
 
-    const response: any = await getCompanyMembers(params)
+    const response: any = await getCompanyUsers(params)
     serverItems.value = response.data
     totalItems.value = response.meta.total
   } catch (error) {

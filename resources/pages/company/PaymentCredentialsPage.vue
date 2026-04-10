@@ -143,7 +143,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getCompanyPaymentCredentials } from '../../services/paymentCredentials.api'
+import { getCompanyPaymentCredentials } from '@/services/paymentCredentials.api'
 
 interface PaymentCredentialItem {
   id: number

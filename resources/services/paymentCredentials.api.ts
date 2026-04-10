@@ -1,5 +1,5 @@
-import { http } from "./http.config";
-import { useAppContextStore } from "../stores/appContext";
+import { http } from "@/services/http.config";
+import { useAppContextStore } from "@/stores/appContext";
 
 export const getCompanyPaymentCredentials = async <T>(params: any = {}): Promise<T> => {
   const store = useAppContextStore();

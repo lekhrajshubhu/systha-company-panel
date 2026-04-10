@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'resources'),
+      '@company': path.resolve(__dirname, 'resources'),
     },
   },
   envDir: path.resolve(__dirname, '../../'),

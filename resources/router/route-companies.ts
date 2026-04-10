@@ -1,7 +1,7 @@
 // route-companies.ts
 import type { RouteRecordRaw } from "vue-router";
-import CompanyLoginPage from "../pages/company/CompanyLoginPage.vue";
-import CompanyDashboardPage from "../pages/company/CompanyDashboardPage.vue";
+import CompanyLoginPage from "@/pages/company/CompanyLoginPage.vue";
+import CompanyDashboardPage from "@/pages/company/CompanyDashboardPage.vue";
 
 const AppLayout = () => import("../layouts/AppLayout.vue");
 

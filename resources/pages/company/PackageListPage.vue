@@ -110,7 +110,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getCompanyPackages } from '../../services/packages.api'
+import { getCompanyPackages } from '@/services/packages.api'
 
 interface PackageItem {
   id: number

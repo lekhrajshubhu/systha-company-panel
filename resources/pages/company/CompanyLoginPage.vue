@@ -42,18 +42,19 @@
           {{ errorMessage }}
         </v-alert>
 
-        <v-btn type="submit" color="primary" size="large" :loading="isSubmitting" block>Sign In</v-btn>
+        <app-flat-button type="submit" :loading="isSubmitting" block>Sign In</app-flat-button>
       </v-form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AppFlatButton from '@/components/AppFlatButton.vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import logoSrc from '../../assets/logo-mark.svg'
-import { setAuthSession, startTokenAutoRefresh } from '../../services/companyAuth'
-import { loginCompany } from '../../services/auth.api'
+import logoSrc from '@/assets/logo-mark.svg'
+import { setAuthSession, startTokenAutoRefresh } from '@/services/companyAuth'
+import { loginCompany } from '@/services/auth.api'
 
 const email = ref('')
 const password = ref('')

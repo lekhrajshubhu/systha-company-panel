@@ -1,5 +1,5 @@
 import axios, { AxiosError } from "axios";
-import { getAccessToken as getCompanyToken } from "./companyAuth";
+import { getAccessToken as getCompanyToken } from "@/services/companyAuth";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "/";
 

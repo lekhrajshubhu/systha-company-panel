@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { companyRoutes } from "./route-companies";
-import { TENANTPANEL_ACCOUNT_KEY, getAccessToken } from "../services/companyAuth";
-import { useAppContextStore } from "../stores/appContext";
-import NotFoundPage from "../pages/shared/NotFoundPage.vue";
+import { companyRoutes } from "@/router/route-companies";
+import { TENANTPANEL_ACCOUNT_KEY, getAccessToken } from "@/services/companyAuth";
+import { useAppContextStore } from "@/stores/appContext";
+import NotFoundPage from "@/pages/shared/NotFoundPage.vue";
 
 export const router = createRouter({
   history: createWebHistory("/company-panel/"),

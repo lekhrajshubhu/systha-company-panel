@@ -117,7 +117,7 @@
 import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getCompanyVendors } from '../../services/vendors.api'
+import { getCompanyVendors } from '@/services/vendors.api'
 
 interface VendorItem {
   id: number

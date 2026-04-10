@@ -87,8 +87,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import AppCard from '../../components/AppCard.vue'
-import { getCompanyEmailTemplates } from '../../services/emailTemplates.api'
+import AppCard from '@/components/AppCard.vue'
+import { getCompanyEmailTemplates } from '@/services/emailTemplates.api'
 
 interface EmailTemplateItem {
   id: number

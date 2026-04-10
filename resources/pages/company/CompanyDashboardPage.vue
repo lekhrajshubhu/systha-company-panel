@@ -144,7 +144,7 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue';
-import AppCard from "../../components/AppCard.vue";
+import AppCard from "@/components/AppCard.vue";
 
 type Metric = {
   key: string;

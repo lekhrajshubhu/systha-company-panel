@@ -1,4 +1,4 @@
-import { http } from "./http.config";
+import { http } from "@/services/http.config";
 
 export type CompanyLoginPayload = {
   companyCode?: string;
@@ -26,6 +26,10 @@ export type CompanyRefreshResponse = {
   expires_in?: number;
 };
 
+export type CompanyLogoutResponse = {
+  message?: string;
+};
+
 export const loginCompany = async (
   payload: CompanyLoginPayload,
 ): Promise<CompanyLoginResponse> => {
@@ -41,5 +45,10 @@ export const loginCompany = async (
 
 export const refreshCompanyToken = async (): Promise<CompanyRefreshResponse> => {
   const response = await http.post<CompanyRefreshResponse>('/api/company/refresh');
+  return response.data;
+};
+
+export const logoutCompany = async (): Promise<CompanyLogoutResponse> => {
+  const response = await http.post<CompanyLogoutResponse>('/api/company/logout');
   return response.data;
 };
