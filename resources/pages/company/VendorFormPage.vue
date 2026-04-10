@@ -46,11 +46,11 @@
             <v-card-text class="pa-4 pt-0">
               <v-row>
                 <v-col cols="12" md="6">
-                  <app-text-field v-model="form.address.line_1" label="Address line 1" clearable hide-details="auto"
+                  <app-text-field v-model="form.address.line1" label="Address line 1" clearable hide-details="auto"
                     placeholder="456 Market St" aria-label="Address line 1" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <app-text-field v-model="form.address.line_2" label="Address line 2" clearable hide-details="auto"
+                  <app-text-field v-model="form.address.line2" label="Address line 2" clearable hide-details="auto"
                     placeholder="Suite 210" aria-label="Address line 2" />
                 </v-col>
                 <v-col cols="12" md="4">
@@ -85,11 +85,11 @@
                     placeholder="Smith" aria-label="Contact last name" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <app-text-field v-model="form.contact.email" label="Email" type="email" clearable hide-details="auto"
+                  <app-text-field v-model="form.contact.email" label="Email" type="email" required clearable hide-details="auto"
                     placeholder="jane.smith@example.com" aria-label="Contact email" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <app-phone-field v-model="form.contact.phone" label="Phone" clearable hide-details="auto"
+                  <app-phone-field v-model="form.contact.phone1" label="Phone" required clearable hide-details="auto"
                     placeholder="+1 555 321 6789" aria-label="Contact phone" />
                 </v-col>
                 <!-- <v-col cols="12">
@@ -117,6 +117,7 @@ import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppPhoneField from '@/components/AppPhoneField.vue'
 import AppSelectField from '@/components/AppSelectField.vue'
 import AppTextField from '@/components/AppTextField.vue'
+import { createCompanyVendor } from '@/services/vendors.api'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -138,30 +139,47 @@ const form = ref({
     phone: '',
   },
   address: {
-    line_1: '',
-    line_2: '',
+    line1: '',
+    line2: '',
     city: '',
     state: '',
     zip: '',
+    lat: null as number | null,
+    lng: null as number | null,
   },
   contact: {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
+    phone1: '',
   },
 })
 const submitting = ref(false)
 
 const isFormValid = computed(() => {
-  return form.value.basic.name.trim() !== '' && form.value.basic.email.trim() !== ''
+  return form.value.basic.name.trim() !== '' &&
+    form.value.basic.email.trim() !== '' &&
+    form.value.contact.first_name.trim() !== '' &&
+    form.value.contact.last_name.trim() !== '' &&
+    form.value.contact.email.trim() !== '' &&
+    form.value.contact.phone1.trim() !== ''
 })
 
 const save = async () => {
   if (!isFormValid.value || submitting.value) return
+
+  const payload = {
+    basic: { ...form.value.basic },
+    address: { ...form.value.address },
+    contact: { ...form.value.contact },
+  }
+
   submitting.value = true
   try {
+    await createCompanyVendor(payload)
     await router.push({ name: 'company.vendors' })
+  } catch (error) {
+    console.error('Failed to create vendor:', error)
   } finally {
     submitting.value = false
   }

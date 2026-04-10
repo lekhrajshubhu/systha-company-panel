@@ -1,23 +1,26 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Systha\Core\Http\Middleware\CompanyContextFromToken;
-use Systha\Core\Http\Middleware\CompanyJwtAuth;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyAuthController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyCustomerController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyEmailTemplateController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyInquiryController;
-use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyUserController;
-use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyVendorController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyPaymentCredentialController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyServiceController;
 use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyServiceQuestionController;
+use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyUserController;
+use Systha\CompanyPanel\Http\Controllers\Api\Company\CompanyVendorController;
+use Systha\CompanyPanel\Http\Controllers\Api\Company\UserStoreController;
+use Systha\CompanyPanel\Http\Controllers\Api\Company\VendorStoreController;
+use Systha\Core\Http\Middleware\CompanyContextFromToken;
+use Systha\Core\Http\Middleware\CompanyJwtAuth;
 
 /*
 |--------------------------------------------------------------------------
 | Company API Routes (Managed by CompanyPanel Package)
 |--------------------------------------------------------------------------
 */
+
 Route::prefix('api')->group(function (): void {
     Route::post('company/login/password', [CompanyAuthController::class, 'passwordLoginWithoutCode']);
     Route::post('company/{company}/login/password', [CompanyAuthController::class, 'passwordLogin']);
@@ -35,10 +38,18 @@ Route::prefix('api')->group(function (): void {
             Route::get('email-templates/{id}', [CompanyEmailTemplateController::class, 'show']);
             Route::put('email-templates/{id}', [CompanyEmailTemplateController::class, 'update']);
             Route::post('inquiries', [CompanyInquiryController::class, 'store']);
+
             Route::get('users', [CompanyUserController::class, 'index']);
             Route::get('users/{id}', [CompanyUserController::class, 'show']);
+            Route::post('users', [UserStoreController::class, 'store']);
+
+
             Route::get('vendors', [CompanyVendorController::class, 'index']);
             Route::get('vendors/{id}', [CompanyVendorController::class, 'show']);
+            Route::post('vendors', [VendorStoreController::class, 'store'])
+                ->name('company.vendors.store');
+
+
             Route::get('payment-credentials', [CompanyPaymentCredentialController::class, 'index']);
             Route::get('services', [CompanyServiceController::class, 'index']);
             Route::get('services/{id}', [CompanyServiceController::class, 'show']);

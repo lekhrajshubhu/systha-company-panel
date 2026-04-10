@@ -95,15 +95,7 @@ export const startTokenAutoRefresh = (): void => {
 }
 
 const redirectToLogin = async (): Promise<void> => {
-  try {
-    const { router } = await import('../router')
-    if (router.currentRoute.value.name !== 'company.login') {
-      await router.push({ name: 'company.login' })
-    }
-  } catch {
-    // If router isn't available yet, fall back to a hard redirect.
-    window.location.href = '/company-panel/login'
-  }
+  window.location.href = '/company-panel/login'
 }
 
 const refreshTokenOnce = async (): Promise<string | null> => {

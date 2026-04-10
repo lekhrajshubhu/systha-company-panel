@@ -76,7 +76,6 @@
               </v-avatar>
               <div>
                 <div class="font-weight-medium text-high-emphasis">{{ item.name || '-' }}</div>
-                <div class="caption text-medium-emphasis">Code: {{ item.vendor_code || '-' }}</div>
               </div>
             </div>
           </template>
@@ -100,6 +99,14 @@
             </v-chip>
           </template>
 
+          <template #[`item.actions`]="{ item }">
+            <div class="d-flex justify-center">
+              <v-btn color="primary" variant="outlined" size="small" @click="viewDetails(item)">
+                Details
+              </v-btn>
+            </div>
+          </template>
+
           <template #no-data>
             <div class="pa-12 text-center">
               <v-icon size="64" color="disabled" class="mb-4">mdi-storefront-outline</v-icon>
@@ -116,7 +123,7 @@
 <script setup lang="ts">
 import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { getCompanyVendors } from '@/services/vendors.api'
 
 interface VendorItem {
@@ -132,6 +139,7 @@ interface VendorItem {
 
 const loading = ref(false)
 const router = useRouter()
+const route = useRoute()
 const search = ref('')
 const statusFilter = ref<string | null>(null)
 const typeFilter = ref<string | null>(null)
@@ -152,6 +160,7 @@ const headers = [
   { title: 'Email', key: 'email', align: 'start' as const, sortable: false },
   { title: 'City', key: 'city', align: 'start' as const, sortable: false },
   { title: 'Status', key: 'status', align: 'center' as const, sortable: true },
+  { title: 'Actions', key: 'actions', align: 'center' as const, sortable: false },
 ]
 
 const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
@@ -216,6 +225,11 @@ const typeOptions = [
 
 const createVendor = () => {
   router.push({ name: 'company.vendor-create' })
+}
+
+const viewDetails = (item: VendorItem) => {
+  
+  router.push({ name: 'company.vendor.detail', params: { id: item.id } })
 }
 </script>
 

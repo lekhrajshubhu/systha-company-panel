@@ -3,26 +3,34 @@
     <div class="pa-0">
       <v-row class="mb-4" align="center" justify="space-between">
         <v-col cols="auto">
-          <h2 class="pa-0">Staffs</h2>
-          <v-card-subtitle class="pa-0">View and manage staff members.</v-card-subtitle>
+          <h2 class="pa-0">User Management</h2>
+          <v-card-subtitle class="pa-0">View and manage company users.</v-card-subtitle>
         </v-col>
         <v-col cols="auto">
-          <app-flat-button icon="mdi-account-plus" @click="createUser">Add User</app-flat-button>
+          <app-flat-button icon="mdi-store-plus" @click="createUser">Add User</app-flat-button>
         </v-col>
       </v-row>
-
       <v-card flat class="mb-6">
         <v-card-text class="pa-4">
-          <v-row align="center">
-            <v-col cols="12" sm="6" md="4">
-              <v-text-field v-model="search" density="compact" variant="outlined" prepend-inner-icon="mdi-magnify"
-                label="Search members" clearable hide-details style="max-width: 360px" @update:model-value="onSearch" />
-            </v-col>
-            <v-spacer />
-            <v-col cols="auto">
-              <v-btn icon="mdi-refresh" variant="text" size="small" color="medium-emphasis" @click="fetchItems" />
-            </v-col>
-          </v-row>
+          <!-- Filters: layout modeled after VendorsPage.vue -->
+          <div class="filters-row">
+            <div class="filters-left">
+              <div class="filter-item search">
+                <v-text-field v-model="search" density="compact" variant="outlined" prepend-inner-icon="mdi-magnify"
+                  label="Search members" clearable hide-details @update:model-value="onSearch" />
+              </div>
+
+              <div class="filter-item role">
+                <v-select v-model="roleFilter" :items="roleItems" item-title="label" item-value="value"
+                  density="compact" variant="outlined" label="Filter role" clearable hide-details
+                  @update:model-value="onRoleFilter" />
+              </div>
+            </div>
+
+            <div class="filters-right">
+              <v-btn icon="mdi-refresh" variant="tonal" size="small" color="medium-emphasis" @click="fetchItems" />
+            </div>
+          </div>
 
           <v-row class="mt-2">
             <v-col cols="12">
@@ -37,7 +45,7 @@
           :hide-default-footer="totalItems <= itemsPerPage">
           <template #[`item.name`]="{ item }">
             <div class="d-flex align-center ga-3 py-2">
-              <v-avatar color="primary" variant="tonal" size="32">
+              <v-avatar color="primary" variant="tonal" rounded size="32">
                 <v-icon size="18">mdi-account</v-icon>
               </v-avatar>
               <div>
@@ -48,28 +56,40 @@
           </template>
 
           <template #[`item.status`]="{ item }">
-            <v-chip :color="item.status === 'active' ? 'success' : 'grey-darken-1'" size="small" variant="tonal" label
-              class="px-3 text-uppercase">
+            <v-chip :color="getStatusColor(item.status)" size="small" variant="tonal" label class="px-3 text-uppercase">
               {{ item.status }}
             </v-chip>
           </template>
 
           <template #[`item.role`]="{ item }">
-            <v-chip size="small" variant="tonal" label class="px-3 text-capitalize">
-              {{ item.role || '-' }}
-            </v-chip>
+            <div class="d-flex align-center">
+              <span v-if="item.role" :class="['role-dot', 'role-' + getRoleColor(item.role)]" />
+              <div class="text-capitalize caption">{{ item.role || '-' }}</div>
+            </div>
           </template>
 
           <template #[`item.joined_at`]="{ item }">
-            <span>{{ item.joined_at || item.created_at || '-' }}</span>
+            <span>{{ item.joined_at ? formatDate(item.joined_at) : '-' }}</span>
           </template>
 
           <template #[`item.last_login_at`]="{ item }">
-            <span>{{ item.last_login_at || '-' }}</span>
+            <span>{{ item.last_login_at ? formatDate(item.last_login_at) : '-' }}</span>
           </template>
 
           <template #[`item.actions`]="{ item }">
-            <v-btn color="primary" variant="outlined" size="small" @click="$router.push({ name: 'company.staff-detail', params: { id: item.id } })">details</v-btn>
+            <div class="d-flex">
+              <v-btn color="primary" variant="outlined" size="small" @click="viewDetails(item)">Details</v-btn>
+
+              <v-btn class="ml-2" color="secondary" variant="outlined" size="small" @click="editUser(item)"
+                aria-label="Edit user">
+                edit
+              </v-btn>
+
+              <v-btn class="ml-2" color="error" variant="outlined" size="small" @click="confirmDelete(item)"
+                aria-label="Delete user">
+                delete
+              </v-btn>
+            </div>
           </template>
 
           <template #no-data>
@@ -90,6 +110,8 @@ import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { getCompanyUsers } from '@/services/users.api'
+import { formatDate, getStatusColor, getRoleColor } from '@/utils'
+
 
 interface MemberItem {
   id: number
@@ -105,6 +127,7 @@ interface MemberItem {
 const loading = ref(false)
 const router = useRouter()
 const search = ref('')
+const roleFilter = ref(null)
 const itemsPerPage = ref(15)
 const serverItems = ref<MemberItem[]>([])
 const totalItems = ref(0)
@@ -119,6 +142,14 @@ const headers = [
   { title: 'Actions', key: 'actions', align: 'end' as const, sortable: false, width: '140px' },
 ]
 
+// predefined role filter items
+const roleItems = ref([
+  { label: 'All Roles', value: null },
+  { label: 'Admin', value: 'admin' },
+  { label: 'Editor', value: 'editor' },
+  { label: 'Viewer', value: 'viewer' },
+])
+
 const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
   loading.value = true
   try {
@@ -126,6 +157,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
       page,
       per_page: itemsPerPage,
       search: search.value,
+      role: roleFilter.value, // include role filter
     }
 
     if (sortBy.length) {
@@ -154,7 +186,125 @@ const onSearch = () => {
   }, 500)
 }
 
+const onRoleFilter = () => {
+  fetchItems()
+}
+
 const createUser = () => {
   router.push({ name: 'company.staff-create' })
 }
+
+// new actions for row buttons
+const viewDetails = (item: MemberItem) => {
+  router.push({ name: 'company.staff-detail', params: { id: item.id } })
+}
+
+const editUser = (item: MemberItem) => {
+  router.push({ name: 'company.staff-edit', params: { id: item.id } })
+}
+
+const confirmDelete = async (item: MemberItem) => {
+  const ok = window.confirm(`Delete ${item.name || item.email}? This action cannot be undone.`)
+  if (!ok) return
+
+  try {
+    // If you have a delete API, call it here. Example:
+    // await deleteCompanyUser(item.id)
+    // After successful delete, refresh list:
+    // fetchItems()
+
+    // Fallback optimistic removal (client-side) until API wired:
+    serverItems.value = serverItems.value.filter(i => i.id !== item.id)
+    totalItems.value = Math.max(0, totalItems.value - 1)
+  } catch (err) {
+    console.error('Failed to delete user', err)
+  }
+}
 </script>
+
+<style scoped>
+.role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* semantic mappings to Vuetify/theme variables (fallback colors included) */
+.role-primary {
+  background-color: var(--v-theme-primary, #1E88E5);
+}
+
+.role-secondary {
+  background-color: var(--v-theme-secondary, #8E24AA);
+}
+
+.role-info {
+  background-color: var(--v-theme-info, #2196F3);
+}
+
+.role-success {
+  background-color: var(--v-theme-success, #4CAF50);
+}
+
+.role-warning {
+  background-color: var(--v-theme-warning, #FFC107);
+}
+
+.role-error {
+  background-color: var(--v-theme-error, #F44336);
+}
+
+.role-default {
+  background-color: #90A4AE;
+}
+
+/* Filters row (copy of VendorsPage style) */
+.filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.filters-left {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: center;
+  width: 100%;
+  max-width: 960px;
+}
+
+.filters-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.filter-item.search {
+  grid-column: span 12;
+}
+
+.filter-item.role {
+  grid-column: span 12;
+}
+
+@media (min-width: 960px) {
+
+  /* Make search and role equal width on desktop (6 columns each) */
+  .filter-item.search {
+    grid-column: 1 / span 6;
+  }
+
+  .filter-item.role {
+    grid-column: 7 / span 6;
+  }
+
+  .filters-right {
+    width: auto;
+  }
+}
+</style>

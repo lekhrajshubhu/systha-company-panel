@@ -150,7 +150,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { getCompanySubscriptions } from '@/services/subscriptions.api'
-import { formatCurrency, formatDate } from '@/utils/utils'
+import { formatCurrency, formatDate } from '@/utils'
 
 interface SubscriptionItem {
   id: number

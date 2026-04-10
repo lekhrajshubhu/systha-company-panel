@@ -3,6 +3,7 @@
     v-bind="$attrs"
     variant="flat"
     size="large"
+    class="text-capitalize"
     :color="color"
     :disabled="disabled || loading"
     @click="onClick"

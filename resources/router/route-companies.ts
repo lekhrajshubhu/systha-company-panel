@@ -2,6 +2,7 @@
 import type { RouteRecordRaw } from "vue-router";
 import CompanyLoginPage from "@/pages/company/CompanyLoginPage.vue";
 import CompanyDashboardPage from "@/pages/company/CompanyDashboardPage.vue";
+import VendorDetailPage from "@/pages/company/VendorDetailPage.vue";
 
 const AppLayout = () => import("../layouts/AppLayout.vue");
 
@@ -90,6 +91,12 @@ export const companyRoutes: RouteRecordRaw[] = [
                 name: "company.vendors",
                 component: VendorsPage,
                 meta: { breadcrumb: ["Overview", "Vendors"] }
+            },
+            {
+                path: "vendors/:id",
+                name: "company.vendor.detail",
+                component: VendorDetailPage,
+                meta: { breadcrumb: ["Overview", "Vendor","Detail"] }
             },
             {
                 path: "vendors/create",

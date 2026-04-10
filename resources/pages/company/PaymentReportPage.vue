@@ -165,7 +165,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { formatCurrency, formatDate } from '@/utils/utils'
+import { formatCurrency, formatDate } from '@/utils'
 
 interface PaymentItem {
   id: number

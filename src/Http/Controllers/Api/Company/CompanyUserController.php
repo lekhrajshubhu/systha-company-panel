@@ -43,8 +43,9 @@ class CompanyUserController extends Controller
                 'id' => $member->id,
                 'name' => $name !== '' ? $name : null,
                 'email' => $member->client_email ?? $member->email,
-                'role' => $member->role?->name,
+                'role' => $member->role?->role_name,
                 'status' => $member->status,
+                'joined_at' => optional($member->created_at)->toDateTimeString(),
                 'last_login_at' => optional($member->last_login_at)->toDateTimeString(),
             ];
         });
