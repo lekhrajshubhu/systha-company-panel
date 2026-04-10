@@ -1,0 +1,22 @@
+{
+  "name": "systha/companypanel",
+  "description": "Independent Company Panel Package",
+  "type": "library",
+  "license": "proprietary",
+  "minimum-stability": "dev",
+  "require": {
+    "systha/core": "*@dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "Systha\\CompanyPanel\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Systha\\CompanyPanel\\CompanyPanelServiceProvider"
+      ]
+    }
+  }
+}

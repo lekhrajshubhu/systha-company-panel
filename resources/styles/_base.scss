@@ -1,0 +1,97 @@
+@use './variables' as *;
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  color: #1f2937;
+  background-color: #f6f8fb;
+  --v-font-family: #{$font-family-base};
+  --v-theme-font-family: #{$font-family-base};
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: $font-family-base;
+  color: $text-color;
+  background-color: $app-bg;
+}
+
+/* Force Vuetify to use Poppins across app + components */
+.v-application,
+.v-application *,
+.v-application [class*='text-'],
+.v-application .v-field,
+.v-application .v-field__input,
+.v-application .v-label,
+.v-application .v-input,
+.v-application .v-btn,
+.v-application .v-btn__content,
+.v-application .v-card-title,
+.v-application .v-card-subtitle,
+.v-application .v-list-item-title,
+.v-application .v-list-item-subtitle,
+.v-application .v-toolbar-title,
+.v-application input,
+.v-application textarea,
+.v-application .text-subtitle-2,
+.v-application .text-body-2,
+.v-application .text-caption,
+.v-application .text-medium-emphasis,
+.v-application select {
+  font-family: $font-family-base !important;
+}
+.text-subtitle-2,
+.text-body-2,
+.text-caption,
+.text-medium-emphasis{
+  font-family: $font-family-base !important;
+}
+
+
+/* Default compact input typography */
+
+.v-list-item--nav .v-list-item-title {
+  // font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  line-height: 1rem !important;
+}
+
+.v-icon--size-default {
+  font-size: 20px !important;
+}
+
+.v-list-item--density-comfortable.v-list-item--one-line {
+  min-height: 38px !important;
+}
+
+.v-list-item__prepend {
+  align-items: center;
+  align-self: center;
+  display: inline-grid !important;
+  grid-area: prepend;
+}
+
+.v-table {
+  // font-size: 0.82rem;
+}
+
+.v-select .v-field__input,
+.v-select .v-select__selection-text,
+.v-overlay .v-list-item-title {
+  // font-size: 0.875rem !important;
+}
+
+.v-card.v-theme--light.v-card--density-default.v-card--variant-elevated.elevation-0
+ {
+    border: 1px solid #f4f4f4;
+    border-radius: 8px;
+}
+.v-field__input {
+  // font-size: 0.875rem !important;
+}
