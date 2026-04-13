@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Systha\Core\Http\Concerns\HandlesApiResources;
 use Systha\Core\Models\VendorModel;
+use Systha\CompanyPanel\Http\Resources\Api\Company\CompanyVendorDetailResource;
 use Systha\CompanyPanel\Http\Resources\Api\Company\CompanyVendorResource;
 
 class CompanyVendorController extends Controller
@@ -32,14 +33,24 @@ class CompanyVendorController extends Controller
         return $this->paginatedResponse($vendors);
     }
 
-    public function show($id)
+    public function show(Request $request, $companyId, $id)
     {
-        $vendor = VendorModel::query()->with('address')->find($id);
+        /** @var \Systha\Core\Models\Company $company */
+        $company = $request->get('company');
+
+        if (!$company) {
+            return response()->json(['error' => 'Company context not found'], 400);
+        }
+
+        $vendor = VendorModel::query()
+            ->where('company_id', $company->id)
+            ->with(['address', 'primaryContact.client'])
+            ->find($id);
 
         if (!$vendor) {
             return response()->json(['error' => 'Vendor not found'], 404);
         }
 
-        return new CompanyVendorResource($vendor);
+        return new CompanyVendorDetailResource($vendor);
     }
 }

@@ -2,8 +2,8 @@
   <v-container class="py-6 px-14" fluid>
     <div class="pa-0">
       <app-page-header
-        title="Add Staff"
-        subtitle="Create a new staff member."
+        :title="pageTitle"
+        :subtitle="pageSubtitle"
         show-back
       />
 
@@ -22,8 +22,8 @@
                     placeholder="Doe" aria-label="Last name" />
                 </v-col>
                 <v-col cols="12" md="6">
-                  <app-text-field v-model="form.contact.email" label="Email" required type="email" clearable hide-details="auto"
-                    placeholder="john.doe@example.com" aria-label="Email" />
+                  <app-text-field v-model="form.contact.email" label="Email" required type="email" :clearable="!isEditMode" hide-details="auto"
+                    placeholder="john.doe@example.com" aria-label="Email" :readonly="isEditMode" />
                 </v-col>
                 <v-col cols="12" md="6">
                   <app-phone-field v-model="form.contact.phone1" label="Phone" required clearable hide-details="auto"
@@ -62,7 +62,9 @@
           </app-card>
           <div class="mb-10">
             <div class="d-flex align-center justify-end mt-4">
-              <app-flat-button :loading="submitting" @click="save">Submit</app-flat-button>
+              <app-flat-button :loading="submitting || loadingStaff" @click="save">
+                {{ submitLabel }}
+              </app-flat-button>
             </div>
           </div>
         </v-col>
@@ -78,11 +80,12 @@ import AppFormSectionHeader from '@/components/AppFormSectionHeader.vue'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppPhoneField from '@/components/AppPhoneField.vue'
 import AppTextField from '@/components/AppTextField.vue'
-import { createCompanyUser } from '@/services/users.api'
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { createCompanyUser, getCompanyUserDetail, updateCompanyUser } from '@/services/users.api'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
 const form = ref({
   contact: {
@@ -102,6 +105,91 @@ const form = ref({
   },
 })
 const submitting = ref(false)
+const loadingStaff = ref(false)
+
+const staffId = computed(() => {
+  const id = route.params.id
+  if (!id) return null
+  const parsed = Number(id)
+  return Number.isNaN(parsed) ? null : parsed
+})
+
+const isEditMode = computed(() => staffId.value !== null)
+
+const pageTitle = computed(() => isEditMode.value ? 'Edit Staff' : 'Add Staff')
+const pageSubtitle = computed(() => isEditMode.value ? 'Update staff member details.' : 'Create a new staff member.')
+const submitLabel = computed(() => isEditMode.value ? 'Update' : 'Submit')
+
+const splitFullName = (fullName: string | null | undefined) => {
+  if (!fullName) {
+    return { first_name: '', last_name: '' }
+  }
+
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) {
+    return { first_name: '', last_name: '' }
+  }
+
+  const first_name = parts[0] ?? ''
+  const last_name = parts.slice(1).join(' ')
+  return { first_name, last_name }
+}
+
+const prefillFromStaffDetail = (staff: any) => {
+  const contact = staff?.contact
+  const address = staff?.address
+
+  if (contact) {
+    form.value.contact.first_name = contact.first_name ?? ''
+    form.value.contact.last_name = contact.last_name ?? ''
+    form.value.contact.email = contact.email ?? ''
+    form.value.contact.phone1 = contact.phone1 ?? ''
+  } else {
+    const { first_name, last_name } = splitFullName(staff?.name)
+    form.value.contact.first_name = first_name
+    form.value.contact.last_name = last_name
+    form.value.contact.email = staff?.email ?? ''
+    form.value.contact.phone1 = staff?.phone1 ?? ''
+  }
+
+  if (address) {
+    form.value.address.line1 = address.line1 ?? ''
+    form.value.address.line2 = address.line2 ?? ''
+    form.value.address.city = address.city ?? ''
+    form.value.address.state = address.state ?? ''
+    form.value.address.zip = address.zip ?? ''
+    form.value.address.lat = address.lat ?? null
+    form.value.address.lng = address.lng ?? null
+  }
+}
+
+const prefillFromRouteQuery = () => {
+  const queryName = typeof route.query.name === 'string' ? route.query.name : ''
+  const queryEmail = typeof route.query.email === 'string' ? route.query.email : ''
+  const queryPhone = typeof route.query.phone1 === 'string' ? route.query.phone1 : ''
+
+  if (!queryName && !queryEmail && !queryPhone) return
+
+  const { first_name, last_name } = splitFullName(queryName)
+  form.value.contact.first_name = first_name
+  form.value.contact.last_name = last_name
+  form.value.contact.email = queryEmail
+  form.value.contact.phone1 = queryPhone
+}
+
+const loadStaffForEdit = async () => {
+  if (!staffId.value) return
+
+  loadingStaff.value = true
+  try {
+    const response: any = await getCompanyUserDetail(staffId.value)
+    prefillFromStaffDetail(response?.data ?? response)
+  } catch (error) {
+    console.warn('Failed to load staff detail. Using route data fallback if available.', error)
+  } finally {
+    loadingStaff.value = false
+  }
+}
 
 const isStep1Valid = computed(() => {
   return form.value.contact.first_name.trim() !== '' &&
@@ -133,12 +221,21 @@ const save = async () => {
 
   submitting.value = true
   try {
-    await createCompanyUser(payload)
+    if (isEditMode.value && staffId.value !== null) {
+      await updateCompanyUser(staffId.value, payload)
+    } else {
+      await createCompanyUser(payload)
+    }
     await router.push({ name: 'company.users' })
   } catch (error) {
-    console.error('Failed to create user:', error)
+    console.error(`Failed to ${isEditMode.value ? 'update' : 'create'} user:`, error)
   } finally {
     submitting.value = false
   }
 }
+
+onMounted(() => {
+  prefillFromRouteQuery()
+  loadStaffForEdit()
+})
 </script>

@@ -1,10 +1,15 @@
 <template>
   <v-container class="py-6 px-14" fluid>
     <div class="pa-0">
-      <div class="mb-4">
-        <h2 class="pa-0">Membership Package</h2>
-        <v-card-subtitle class="pa-0">View and manage company membership packages.</v-card-subtitle>
-      </div>
+      <v-row class="mb-4" align="center" justify="space-between">
+        <v-col cols="auto">
+          <h2 class="pa-0">Membership Package</h2>
+          <v-card-subtitle class="pa-0">View and manage company membership packages.</v-card-subtitle>
+        </v-col>
+        <v-col cols="auto">
+          <app-flat-button icon="mdi-package-variant-plus" @click="createPackage">Add Package</app-flat-button>
+        </v-col>
+      </v-row>
       <v-card flat class="mb-6">
         <v-card-text class="pa-4">
           <div class="filters-row">
@@ -109,7 +114,9 @@
 </template>
 
 <script setup lang="ts">
+import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { getCompanyPackages } from '@/services/packages.api'
 
 interface PackageItem {
@@ -125,6 +132,7 @@ interface PackageItem {
 }
 
 const loading = ref(false)
+const router = useRouter()
 const search = ref('')
 const statusFilter = ref<string | null>(null)
 const itemsPerPage = ref(15)
@@ -214,6 +222,10 @@ const onSearch = () => {
   debounceTimeout.value = window.setTimeout(() => {
     fetchItems()
   }, 500)
+}
+
+const createPackage = () => {
+  router.push({ name: 'company.membership.package-create' })
 }
 
 // local delete handler (placeholder - replace with API call)

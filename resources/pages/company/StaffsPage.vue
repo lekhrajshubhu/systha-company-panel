@@ -78,7 +78,7 @@
 
           <template #[`item.actions`]="{ item }">
             <div class="d-flex">
-              <v-btn color="primary" variant="outlined" size="small" @click="viewDetails(item)">Details</v-btn>
+              <!-- <v-btn color="primary" variant="outlined" size="small" @click="viewDetails(item)">Details</v-btn> -->
 
               <v-btn class="ml-2" color="secondary" variant="outlined" size="small" @click="editUser(item)"
                 aria-label="Edit user">
@@ -107,9 +107,11 @@
 
 <script setup lang="ts">
 import AppFlatButton from '@/components/AppFlatButton.vue'
-import { ref } from 'vue'
+import UserDeleteModal from '@/components/modals/UserDeleteModal.vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { getCompanyUsers } from '@/services/users.api'
+import { deleteCompanyUser, getCompanyUsers } from '@/services/users.api'
+import { useModalStore } from '@/stores/modal'
 import { formatDate, getStatusColor, getRoleColor } from '@/utils'
 
 
@@ -126,12 +128,21 @@ interface MemberItem {
 
 const loading = ref(false)
 const router = useRouter()
+const modal = useModalStore()
 const search = ref('')
 const roleFilter = ref(null)
 const itemsPerPage = ref(15)
 const serverItems = ref<MemberItem[]>([])
 const totalItems = ref(0)
 const debounceTimeout = ref<number | null>(null)
+const deleting = ref(false)
+const pendingDeleteUser = ref<MemberItem | null>(null)
+const deleteModalProps = reactive({
+  userName: 'this user',
+  loading: false,
+  onConfirm: () => performDelete(),
+  onCancel: () => cancelDelete(),
+})
 
 const headers = [
   { title: 'Name', key: 'name', align: 'start' as const, sortable: true },
@@ -194,30 +205,49 @@ const createUser = () => {
   router.push({ name: 'company.staff-create' })
 }
 
-// new actions for row buttons
-const viewDetails = (item: MemberItem) => {
-  router.push({ name: 'company.staff-detail', params: { id: item.id } })
-}
 
 const editUser = (item: MemberItem) => {
-  router.push({ name: 'company.staff-edit', params: { id: item.id } })
+  router.push({
+    name: 'company.staff-edit',
+    params: { id: item.id }
+  })
 }
 
 const confirmDelete = async (item: MemberItem) => {
-  const ok = window.confirm(`Delete ${item.name || item.email}? This action cannot be undone.`)
-  if (!ok) return
+  pendingDeleteUser.value = item
+  deleteModalProps.userName = item.name || item.email || 'this user'
+  deleteModalProps.loading = false
+  modal.open(UserDeleteModal, deleteModalProps, {
+    showHeader: false,
+    fullscreen: false,
+    maxWidth: 420,
+    persistent: true,
+  })
+}
 
+const cancelDelete = () => {
+  modal.close()
+  pendingDeleteUser.value = null
+  deleteModalProps.loading = false
+}
+
+const performDelete = async () => {
+  if (!pendingDeleteUser.value || deleting.value) return
+
+  deleting.value = true
+  deleteModalProps.loading = true
   try {
-    // If you have a delete API, call it here. Example:
-    // await deleteCompanyUser(item.id)
-    // After successful delete, refresh list:
-    // fetchItems()
+    await deleteCompanyUser(pendingDeleteUser.value.id)
 
-    // Fallback optimistic removal (client-side) until API wired:
-    serverItems.value = serverItems.value.filter(i => i.id !== item.id)
+    serverItems.value = serverItems.value.filter(i => i.id !== pendingDeleteUser.value?.id)
     totalItems.value = Math.max(0, totalItems.value - 1)
+    modal.close()
+    pendingDeleteUser.value = null
   } catch (err) {
     console.error('Failed to delete user', err)
+  } finally {
+    deleting.value = false
+    deleteModalProps.loading = false
   }
 }
 </script>

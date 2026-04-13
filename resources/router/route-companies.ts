@@ -13,11 +13,13 @@ const VendorFormPage = () => import("../pages/company/VendorFormPage.vue");
 const DocumentsPage = () => import("../pages/company/DocumentsPage.vue");
 const DefaultSettingsPage = () => import("../pages/company/DefaultSettingsPage.vue");
 const PackageListPage = () => import("../pages/company/PackageListPage.vue");
+const PackageFormPage = () => import("../pages/company/PackageFormPage.vue");
 const SubscriptionsPage = () => import("../pages/company/SubscriptionsPage.vue");
 const ReportsPage = () => import("../pages/company/ReportsPage.vue");
 const CommissionReportPage = () => import("../pages/company/CommissionReportPage.vue");
 const PaymentReportPage = () => import("../pages/company/PaymentReportPage.vue");
 const PaymentCredentialsPage = () => import("../pages/company/PaymentCredentialsPage.vue");
+const PaymentCredentialFormPage = () => import("../pages/company/PaymentCredentialFormPage.vue");
 
 export const companyMenuGroups = [
     {
@@ -31,7 +33,7 @@ export const companyMenuGroups = [
     {
         group: "Memberships",
         items: [
-            { title: "Package List", routeName: "company.membership.package", icon: "mdi-gift-outline" },
+            { title: "Packages", routeName: "company.membership.package", icon: "mdi-gift-outline" },
             { title: "Subscriptions", routeName: "company.membership.subscriptions", icon: "mdi-autorenew" },
         ],
     },
@@ -46,7 +48,7 @@ export const companyMenuGroups = [
         group: "Configuration",
         items: [
             { title: "Policies", routeName: "company.policies", icon: "mdi-file-document-multiple-outline" },
-            { title: "Wallet", routeName: "company.config.payment", icon: "mdi-wallet-bifold-outline" },
+            { title: "Payment Gateways", routeName: "company.config.payment", icon: "mdi-wallet-bifold-outline" },
             { title: "General", routeName: "company.config.general", icon: "mdi-cog-outline" },
         ],
     },
@@ -87,6 +89,12 @@ export const companyRoutes: RouteRecordRaw[] = [
                 meta: { breadcrumb: ["Overview", "Users", "Create"] }
             },
             {
+                path: "users/:id/edit",
+                name: "company.staff-edit",
+                component: StaffFormPage,
+                meta: { breadcrumb: ["Overview", "Users", "Edit"] }
+            },
+            {
                 path: "vendors",
                 name: "company.vendors",
                 component: VendorsPage,
@@ -117,6 +125,12 @@ export const companyRoutes: RouteRecordRaw[] = [
                 meta: { breadcrumb: ["Memberships", "Package List"] }
             },
             {
+                path: "membership/packages/create",
+                name: "company.membership.package-create",
+                component: PackageFormPage,
+                meta: { breadcrumb: ["Memberships", "Package List", "Create"] }
+            },
+            {
                 path: "membership/subscriptions",
                 name: "company.membership.subscriptions",
                 component: SubscriptionsPage,
@@ -139,6 +153,18 @@ export const companyRoutes: RouteRecordRaw[] = [
                 name: "company.config.payment",
                 component: PaymentCredentialsPage,
                 meta: { breadcrumb: ["Configuration", "Payment Gateways"] }
+            },
+            {
+                path: "config/payment/create",
+                name: "company.config.payment-create",
+                component: PaymentCredentialFormPage,
+                meta: { breadcrumb: ["Configuration", "Payment Gateways", "Create"] }
+            },
+            {
+                path: "config/payment/:id/edit",
+                name: "company.config.payment-edit",
+                component: PaymentCredentialFormPage,
+                meta: { breadcrumb: ["Configuration", "Payment Gateways", "Edit"] }
             },
             {
                 path: "config/general",

@@ -1,12 +1,15 @@
 <template>
     <v-container class="py-6 px-14" fluid>
         <div class="pa-0">
-            <div class="mb-4">
+            <v-row class="mb-4" align="center" justify="space-between">
+              <v-col cols="auto">
                 <h2 class="pa-0">Payment Credentials</h2>
-                <v-card-subtitle class="pa-0"
-                    >Manage  payment credentials.</v-card-subtitle
-                >
-            </div>
+                <v-card-subtitle class="pa-0">Manage payment credentials.</v-card-subtitle>
+              </v-col>
+              <v-col cols="auto">
+                <app-flat-button icon="mdi-plus" @click="addCredential">Add Credential</app-flat-button>
+              </v-col>
+            </v-row>
       <v-card flat class="mb-6">
         <v-card-text class="pa-4">
           <v-row align="center">
@@ -77,10 +80,27 @@
             </v-chip>
           </template>
 
+          <template #[`item.mode`]="{ item }">
+            <v-chip
+              :color="item.mode === 'live' ? 'success' : (item.mode === 'test' ? 'warning' : 'grey-darken-1')"
+              size="small"
+              variant="tonal"
+              label
+              class="px-3 text-uppercase"
+            >
+              {{ item.mode || '-' }}
+            </v-chip>
+          </template>
+
           <template #[`item.actions`]="{ item }">
-            <v-btn size="small" variant="tonal" color="primary" icon>
-              <v-icon>mdi-pencil-outline</v-icon>
-            </v-btn>
+            <div class="d-flex ga-2 justify-end">
+              <v-btn size="small" variant="outlined" color="primary" @click="editCredential(item)">
+                edit
+              </v-btn>
+              <v-btn size="small" variant="outlined" color="error" @click="confirmDelete(item)">
+                delete
+              </v-btn>
+            </div>
           </template>
 
           <template #expanded-row="{ columns, item }">
@@ -142,30 +162,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { getCompanyPaymentCredentials } from '@/services/paymentCredentials.api'
+import AppFlatButton from '@/components/AppFlatButton.vue'
+import PaymentCredentialDeleteModal from '@/components/modals/PaymentCredentialDeleteModal.vue'
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { deleteCompanyPaymentCredential, getCompanyPaymentCredentials } from '@/services/paymentCredentials.api'
+import { useModalStore } from '@/stores/modal'
 
 interface PaymentCredentialItem {
   id: number
   name: string
   code: string
+  mode?: string
   credentials: Record<string, any> | null
   is_default: boolean
   is_active: boolean
 }
 
 const loading = ref(false)
+const router = useRouter()
+const modal = useModalStore()
 const search = ref('')
 const itemsPerPage = ref(15)
 const serverItems = ref<PaymentCredentialItem[]>([])
 const totalItems = ref(0)
 const debounceTimeout = ref<number | null>(null)
+const deleting = ref(false)
+const pendingDeleteCredential = ref<PaymentCredentialItem | null>(null)
 // v-data-table-server expects expanded to be an array of item keys (strings), not full item objects.
 const expanded = ref<string[]>([])
+const deleteModalProps = reactive({
+  credentialName: 'this credential',
+  loading: false,
+  onConfirm: () => performDelete(),
+  onCancel: () => cancelDelete(),
+})
 
 const headers = [
   { title: 'Name', key: 'name', align: 'start' as const, sortable: true },
   { title: 'Code', key: 'code', align: 'start' as const, sortable: true },
+  { title: 'Mode', key: 'mode', align: 'center' as const, sortable: true },
   { title: 'Default', key: 'is_default', align: 'center' as const, sortable: true },
   { title: 'Status', key: 'is_active', align: 'center' as const, sortable: true },
   { title: 'Actions', key: 'actions', align: 'end' as const, sortable: false },
@@ -232,6 +268,52 @@ const copyToClipboard = async (value: string) => {
     await navigator.clipboard.writeText(value)
   } catch (error) {
     console.error('Failed to copy credential:', error)
+  }
+}
+
+const addCredential = () => {
+  router.push({ name: 'company.config.payment-create' })
+}
+
+const editCredential = (item: PaymentCredentialItem) => {
+  router.push({ name: 'company.config.payment-edit', params: { id: item.id } })
+}
+
+const confirmDelete = (item: PaymentCredentialItem) => {
+  pendingDeleteCredential.value = item
+  deleteModalProps.credentialName = item.name || item.code || 'this credential'
+  deleteModalProps.loading = false
+  modal.open(PaymentCredentialDeleteModal, deleteModalProps, {
+    showHeader: false,
+    fullscreen: false,
+    maxWidth: 420,
+    persistent: true,
+  })
+}
+
+const cancelDelete = () => {
+  modal.close()
+  pendingDeleteCredential.value = null
+  deleteModalProps.loading = false
+}
+
+const performDelete = async () => {
+  if (!pendingDeleteCredential.value || deleting.value) return
+
+  deleting.value = true
+  deleteModalProps.loading = true
+  try {
+    await deleteCompanyPaymentCredential(pendingDeleteCredential.value.id)
+
+    serverItems.value = serverItems.value.filter(i => i.id !== pendingDeleteCredential.value?.id)
+    totalItems.value = Math.max(0, totalItems.value - 1)
+    modal.close()
+    pendingDeleteCredential.value = null
+  } catch (error) {
+    console.error('Failed to delete payment credential:', error)
+  } finally {
+    deleting.value = false
+    deleteModalProps.loading = false
   }
 }
 </script>

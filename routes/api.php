@@ -41,6 +41,8 @@ Route::prefix('api')->group(function (): void {
 
             Route::get('users', [CompanyUserController::class, 'index']);
             Route::get('users/{id}', [CompanyUserController::class, 'show']);
+            Route::put('users/{id}', [CompanyUserController::class, 'update']);
+            Route::delete('users/{id}', [CompanyUserController::class, 'destroy']);
             Route::post('users', [UserStoreController::class, 'store']);
 
 
@@ -51,6 +53,10 @@ Route::prefix('api')->group(function (): void {
 
 
             Route::get('payment-credentials', [CompanyPaymentCredentialController::class, 'index']);
+            Route::post('payment-credentials', [CompanyPaymentCredentialController::class, 'store']);
+            Route::get('payment-credentials/{id}', [CompanyPaymentCredentialController::class, 'show']);
+            Route::put('payment-credentials/{id}', [CompanyPaymentCredentialController::class, 'update']);
+            Route::delete('payment-credentials/{id}', [CompanyPaymentCredentialController::class, 'destroy']);
             Route::get('services', [CompanyServiceController::class, 'index']);
             Route::get('services/{id}', [CompanyServiceController::class, 'show']);
             Route::get('services/{id}/questions', [CompanyServiceQuestionController::class, 'serviceItemQuestions']);
