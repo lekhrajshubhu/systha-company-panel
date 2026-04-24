@@ -4,9 +4,6 @@
   "type": "library",
   "license": "proprietary",
   "minimum-stability": "dev",
-  "require": {
-    "systha/core": "*@dev"
-  },
   "autoload": {
     "psr-4": {
       "Systha\\CompanyPanel\\": "src/"
