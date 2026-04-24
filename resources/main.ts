@@ -5,7 +5,7 @@ import { vuetify } from '@/plugins/vuetify'
 import { vuetifyProTipTap } from '@/plugins/tiptap'
 import { startTokenAutoRefresh } from '@/services/companyAuth'
 import 'vuetify/styles'
-import 'vuetify-pro-tiptap/styles/editor.css'
+import 'vuetify-pro-tiptap/style.css'
 import '@/styles/main.scss'
 import { router } from './router'
 

@@ -53,8 +53,7 @@ import AppFlatButton from '@/components/AppFlatButton.vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import logoSrc from '@/assets/logo-mark.svg'
-import { setAuthSession, startTokenAutoRefresh } from '@/services/companyAuth'
-import { loginCompany } from '@/services/auth.api'
+import { AUTH_ACTIVE_CONTEXT_KEY, AUTH_CONTEXTS_KEY, loginCompany, saveActiveContext, saveAuthToken } from '@/services/auth.api'
 
 const email = ref('')
 const password = ref('')
@@ -79,30 +78,32 @@ const onSubmit = async () => {
 
   try {
     const payload = await loginCompany({
-      login_identifier: email.value.trim(),
+      email: email.value.trim(),
       password: password.value,
-    }) as {
-      access_token?: string
-      user?: {
-        id: number | string
-        name: string
-        email: string
-        role: string
-        company: {
-          name: string
-          code: string
-        }
-      }
-      message?: string
+    })
+
+    const token = payload?.token;
+
+    console.log({token});
+    if (token) saveAuthToken(token);
+
+    if (Array.isArray(payload?.contexts) && payload.contexts.length) {
+      localStorage.setItem(AUTH_CONTEXTS_KEY, JSON.stringify(payload.contexts));
     }
 
-    if (!payload?.access_token || !payload?.user) {
-      errorMessage.value = payload?.message || 'Invalid login response.'
-      return
-    }
 
-    setAuthSession(payload.access_token, payload.user)
-    startTokenAutoRefresh()
+
+    // Persist active context returned by the server.
+    try {
+      saveActiveContext(payload.active_context);
+    } catch {
+      // ignore
+    }
+    try {
+      localStorage.setItem(AUTH_ACTIVE_CONTEXT_KEY, JSON.stringify(payload.active_context));
+    } catch {
+      // ignore
+    }
     await router.push({ name: 'company.dashboard' })
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Unable to connect to server.'

@@ -1,3 +1,5 @@
+import { clearAuthToken, getAuthToken, setAuthToken } from '@/services/authToken.storage'
+
 export const TENANTPANEL_ACCESS_TOKEN_KEY = 'companypanel_access_token'
 export const TENANTPANEL_ACCOUNT_KEY = 'companypanel_account'
 const REFRESH_BUFFER_MS = 600_000
@@ -9,11 +11,11 @@ export type CompanyAccount = {
 }
 
 export const getAccessToken = (): string | null => {
-  return localStorage.getItem(TENANTPANEL_ACCESS_TOKEN_KEY)
+  return getAuthToken()
 }
 
 export const setAccessToken = (token: string): void => {
-  localStorage.setItem(TENANTPANEL_ACCESS_TOKEN_KEY, token)
+  setAuthToken(token)
 }
 
 export const setAuthSession = (token: string, account: CompanyAccount): void => {
@@ -22,7 +24,7 @@ export const setAuthSession = (token: string, account: CompanyAccount): void => 
 }
 
 export const clearAuthSession = (): void => {
-  localStorage.removeItem(TENANTPANEL_ACCESS_TOKEN_KEY)
+  clearAuthToken()
   localStorage.removeItem(TENANTPANEL_ACCOUNT_KEY)
 }
 
@@ -102,7 +104,7 @@ const refreshTokenOnce = async (): Promise<string | null> => {
   if (refreshPromise) return refreshPromise
   const { refreshCompanyToken } = await import('./auth.api')
   refreshPromise = refreshCompanyToken()
-    .then((payload) => payload.access_token ?? null)
+    .then((payload) => payload.token ?? null)
     .finally(() => {
       refreshPromise = null
     })

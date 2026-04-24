@@ -35,7 +35,26 @@
                                             prepend-icon="mdi-image-edit"
                                             @click="logoInput?.click()"
                                         >
-                                            Upload Logo
+                                            Choose Logo
+                                        </v-btn>
+                                        <v-btn
+                                            class="ml-2"
+                                            color="primary"
+                                            :loading="savingLogo"
+                                            :disabled="loading || submitting || savingLogo || !form.logo"
+                                            @click="onSaveLogo"
+                                        >
+                                            Save Logo
+                                        </v-btn>
+                                        <v-btn
+                                            class="ml-2"
+                                            color="error"
+                                            variant="text"
+                                            :loading="savingLogo"
+                                            :disabled="loading || submitting || savingLogo || !initialLogoUrl"
+                                            @click="onRemoveLogo"
+                                        >
+                                            Remove
                                         </v-btn>
                                         <input
                                             ref="logoInput"
@@ -70,6 +89,7 @@
                                     v-model="form.company_phone"
                                     label="Company Phone"
                                     variant="outlined"
+                                    v-mask="'(###) ###-####'"
                                     density="comfortable"
                                 />
                             </v-col>
@@ -122,7 +142,12 @@
                             </v-col>
 
                             <v-col cols="12" class="d-flex justify-end mt-2">
-                                <v-btn color="primary" type="submit">
+                                <v-btn
+                                    color="primary"
+                                    type="submit"
+                                    :loading="submitting"
+                                    :disabled="loading || submitting || savingLogo"
+                                >
                                     <v-icon start icon="mdi-content-save" />
                                     Save
                                 </v-btn>
@@ -136,7 +161,13 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, reactive, ref } from "vue";
+import {
+    type CompanyGeneralSettingsResponse,
+    getCompanyGeneralSettings,
+    updateCompanyGeneralSettings,
+    updateCompanyLogo,
+} from "@/services/generalSettings.api";
+import { onBeforeUnmount, onMounted, reactive, ref } from "vue";
 
 const form = reactive({
     logo: null as File | null,
@@ -154,25 +185,128 @@ const form = reactive({
 
 const logoInput = ref<HTMLInputElement | null>(null);
 const logoPreview = ref<string>("");
+const initialLogoUrl = ref<string>("");
+const logoObjectUrl = ref<string>("");
+const loading = ref(false);
+const submitting = ref(false);
+const savingLogo = ref(false);
+
+const revokeLogoObjectUrl = () => {
+    if (logoObjectUrl.value) {
+        URL.revokeObjectURL(logoObjectUrl.value);
+        logoObjectUrl.value = "";
+    }
+};
 
 const onLogoChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0] ?? null;
-    if (logoPreview.value) {
-        URL.revokeObjectURL(logoPreview.value);
-    }
+
+    revokeLogoObjectUrl();
     form.logo = file;
-    logoPreview.value = file ? URL.createObjectURL(file) : "";
+    if (file) {
+        logoObjectUrl.value = URL.createObjectURL(file);
+        logoPreview.value = logoObjectUrl.value;
+        return;
+    }
+
+    logoPreview.value = initialLogoUrl.value;
 };
 
 onBeforeUnmount(() => {
-    if (logoPreview.value) {
-        URL.revokeObjectURL(logoPreview.value);
-    }
+    revokeLogoObjectUrl();
 });
 
-const onSubmit = () => {
-    // Hook this payload into your API/action.
-    console.log("Default settings payload", form);
+const applySettings = (payload: CompanyGeneralSettingsResponse) => {
+    const data = payload?.data ?? payload ?? {};
+
+    form.company_name = data?.company_name ?? "";
+    form.company_email = data?.company_email ?? "";
+    form.company_phone = data?.company_phone ?? "";
+    form.address.line_1 = data?.address?.line_1 ?? "";
+    form.address.line_2 = data?.address?.line_2 ?? "";
+    form.address.city = data?.address?.city ?? "";
+    form.address.state = data?.address?.state ?? "";
+    form.address.zip = data?.address?.zip ?? "";
+    form.logo = null;
+
+    initialLogoUrl.value = data?.logo_url ?? "";
+    logoPreview.value = initialLogoUrl.value;
 };
+
+const loadSettings = async () => {
+    loading.value = true;
+    try {
+        const response = await getCompanyGeneralSettings();
+        applySettings(response);
+    } catch (error) {
+        console.error("Failed to load default settings:", error);
+    } finally {
+        loading.value = false;
+    }
+};
+
+const onSubmit = async () => {
+    if (loading.value || submitting.value || savingLogo.value) return;
+
+    submitting.value = true;
+    try {
+        const response = await updateCompanyGeneralSettings({
+            name: form.company_name,
+            email: form.company_email,
+            phone: form.company_phone,
+            address: {
+                line_1: form.address.line_1,
+                line_2: form.address.line_2,
+                city: form.address.city,
+                state: form.address.state,
+                zip: form.address.zip,
+            },
+        });
+
+        applySettings(response);
+    } catch (error) {
+        console.error("Failed to update default settings:", error);
+    } finally {
+        submitting.value = false;
+    }
+};
+
+const onSaveLogo = async () => {
+    if (loading.value || submitting.value || savingLogo.value || !form.logo) return;
+
+    savingLogo.value = true;
+    try {
+        const response = await updateCompanyLogo({
+            logo: form.logo,
+        });
+
+        applySettings(response);
+    } catch (error) {
+        console.error("Failed to update company logo:", error);
+    } finally {
+        savingLogo.value = false;
+    }
+};
+
+const onRemoveLogo = async () => {
+    if (loading.value || submitting.value || savingLogo.value || !initialLogoUrl.value) return;
+
+    savingLogo.value = true;
+    try {
+        const response = await updateCompanyLogo({
+            remove_logo: true,
+        });
+
+        applySettings(response);
+    } catch (error) {
+        console.error("Failed to remove company logo:", error);
+    } finally {
+        savingLogo.value = false;
+    }
+};
+
+onMounted(() => {
+    loadSettings();
+});
 </script>

@@ -55,7 +55,7 @@ final class AddressDto
             'state' => $this->state,
             'zip' => $this->zip,
             'lat' => $this->lat,
-            'lon' => $this->lng,
+            'lng' => $this->lng,
             'country' => $this->country,
         ];
     }

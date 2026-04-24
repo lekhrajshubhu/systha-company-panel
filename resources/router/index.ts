@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { companyRoutes } from "@/router/route-companies";
-import { TENANTPANEL_ACCOUNT_KEY, getAccessToken } from "@/services/companyAuth";
+import { TENANTPANEL_ACCOUNT_KEY } from "@/services/companyAuth";
+import { getAuthToken } from "@/services/authToken.storage";
 import { useAppContextStore } from "@/stores/appContext";
 import NotFoundPage from "@/pages/shared/NotFoundPage.vue";
 
@@ -17,7 +18,7 @@ export const router = createRouter({
 
 router.beforeEach((to) => {
   const store = useAppContextStore();
-  const token = getAccessToken();
+  const token = getAuthToken();
   const isLoginRoute = to.name === "company.login";
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 

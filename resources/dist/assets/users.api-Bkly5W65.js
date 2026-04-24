@@ -1,0 +1,1 @@
+import{F as a}from"./index-C_iwLcCv.js";const o=async(s={})=>(await a.get("/company/users",{params:s})).data,r=async s=>(await a.get(`/company/users/${s}/detail`)).data,p=async s=>(await a.post("/company/users",s)).data,c=async(s,e)=>(await a.put(`/company/users/${s}`,e)).data,y=async s=>(await a.delete(`/company/users/${s}`)).data;export{r as a,p as c,y as d,o as g,c as u};

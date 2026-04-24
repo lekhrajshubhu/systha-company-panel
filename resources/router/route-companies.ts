@@ -10,7 +10,7 @@ const StaffsPage = () => import("../pages/company/StaffsPage.vue");
 const StaffFormPage = () => import("../pages/company/StaffFormPage.vue");
 const VendorsPage = () => import("../pages/company/VendorsPage.vue");
 const VendorFormPage = () => import("../pages/company/VendorFormPage.vue");
-const DocumentsPage = () => import("../pages/company/DocumentsPage.vue");
+const PolicyPage = () => import("../pages/company/PolicyPage.vue");
 const DefaultSettingsPage = () => import("../pages/company/DefaultSettingsPage.vue");
 const PackageListPage = () => import("../pages/company/PackageListPage.vue");
 const PackageFormPage = () => import("../pages/company/PackageFormPage.vue");
@@ -115,7 +115,7 @@ export const companyRoutes: RouteRecordRaw[] = [
             {
                 path: "policies",
                 name: "company.policies",
-                component: DocumentsPage,
+                component: PolicyPage,
                 meta: { breadcrumb: ["Configuration", "Policies"] }
             },
             {
