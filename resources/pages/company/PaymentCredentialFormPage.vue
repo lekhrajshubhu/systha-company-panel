@@ -11,45 +11,46 @@
         <v-col cols="12" md="7" lg="6">
           <app-card class="mb-4">
             <app-form-section-header
-              title="Stripe Credential"
-              subtitle="Store Stripe API keys and gateway flags."
-            />
-            <v-card-text class="pa-4 pt-0">
-              <v-row>
-                <v-col cols="12" md="6">
-                  <app-text-field
-                    v-model="form.name"
-                    label="Credential Name *"
-                    label-class="field-label"
-                    placeholder="e.g. Stripe Main Account"
-                    clearable
-                    hide-details="auto"
-                  />
-                </v-col>
-
-                 <v-col cols="12" md="3">
-                  <app-text-field
-                    v-model="form.code"
-                    label="Code *"
-                    readonly
-                    label-class="field-label"
-                    placeholder="stripe"
-                    hide-details="auto"
-                  />
-                </v-col>
-
-                 <v-col cols="12" md="3">
-                  <app-select-field
-                    v-model="form.mode"
-                    label="Mode *"
-                    label-class="field-label"
-                    :items="modeItems"
-                    item-title="label"
-                    item-value="value"
-                    hide-details="auto"
-                  />
-                </v-col>
-
+               title="Stripe Credential"
+               subtitle="Store Stripe API keys and gateway flags."
+             />
+            <v-form ref="formRef" lazy-validation>
+              <v-card-text class="pa-4 pt-0">
+                <v-row>
+                 <v-col cols="12" md="6">
+                   <app-text-field
+                     v-model="form.name"
+                     label="Credential Name *"
+                     label-class="field-label"
+                     placeholder="e.g. Stripe Main Account"
+                     clearable
+                    :rules="required('Credential name')"
+                   />
+                 </v-col>
+ 
+                  <!-- <v-col cols="12" md="3">
+                   <app-text-field
+                     v-model="form.code"
+                     label="Code *"
+                     readonly
+                     label-class="field-label"
+                     placeholder="stripe"
+                    :rules="required('Code')"
+                   />
+                 </v-col> -->
+ 
+                  <v-col cols="12" md="6">
+                   <app-select-field
+                     v-model="form.mode"
+                     label="Mode *"
+                     label-class="field-label"
+                     :items="modeItems"
+                     item-title="label"
+                     item-value="value"
+                    :rules="required('Mode')"
+                   />
+                 </v-col>
+ 
                 <v-col cols="12">
                   <app-text-field
                     v-model="form.credentials.publishable_key"
@@ -57,7 +58,7 @@
                     label-class="field-label"
                     placeholder="pk_live_xxx"
                     clearable
-                    hide-details="auto"
+                    :rules="required('Publishable key')"
                   />
                 </v-col>
 
@@ -70,7 +71,7 @@
                     :type="showSecretKey ? 'text' : 'password'"
                     :append-inner-icon="showSecretKey ? 'mdi-eye-off' : 'mdi-eye'"
                     @click:append-inner="showSecretKey = !showSecretKey"
-                    hide-details="auto"
+                    :rules="required('Secret key')"
                   />
                 </v-col>
 
@@ -80,8 +81,7 @@
                     label="Webhook Secret"
                     label-class="field-label"
                     placeholder="whsec_xxx"
-                    type="password"
-                    hide-details="auto"
+                    
                   />
                 </v-col>
 
@@ -96,10 +96,11 @@
                 </v-col>
               </v-row>
             </v-card-text>
+            </v-form>
           </app-card>
 
           <div class="d-flex justify-end mb-8">
-            <app-flat-button :loading="submitting" @click="save">
+            <app-flat-button :loading="submitting" :disabled="!isFormValid || submitting || loadingDetail" @click="save">
               Save Credential
             </app-flat-button>
           </div>
@@ -128,6 +129,7 @@ const router = useRouter()
 const route = useRoute()
 const submitting = ref(false)
 const loadingDetail = ref(false)
+const formRef = ref(null as any)
 const showSecretKey = ref(false)
 const modeItems = [
   { label: 'Test', value: 'test' },
@@ -183,16 +185,36 @@ const loadCredential = async () => {
   }
 }
 
-const isValid = () => {
+// validation helpers
+const required = (label: string) => [ (v: any) => (v !== null && v !== undefined && String(v).trim().length > 0) || `${label} is required` ]
+
+const isFormValid = computed(() => {
   return form.value.name.trim() !== '' &&
     form.value.code.trim() !== '' &&
     form.value.mode.trim() !== '' &&
     form.value.credentials.publishable_key.trim() !== '' &&
     form.value.credentials.secret_key.trim() !== ''
-}
+})
 
 const save = async () => {
-  if (!isValid() || submitting.value || loadingDetail.value) return
+  // reset previous validation state and validate via v-form if available
+  try {
+    if (formRef.value && typeof (formRef.value as any).resetValidation === 'function') {
+      try { (formRef.value as any).resetValidation() } catch (e) { /* ignore */ }
+    }
+
+    const validator = formRef.value && (formRef.value as any).validate
+    if (typeof validator === 'function') {
+      const valid = await validator()
+      if (!valid) return
+    } else {
+      if (!isFormValid.value) return
+    }
+  } catch (err) {
+    return
+  }
+
+  if (submitting.value || loadingDetail.value) return
 
   submitting.value = true
   try {

@@ -10,7 +10,7 @@
                     <v-form @submit.prevent="onSubmit">
                         <v-row dense>
                             <v-col cols="12">
-                                <div class="d-flex align-center ga-4">
+                                <div class="d-flex align-center ga-4 mb-4">
                                     <v-avatar color="grey-lighten-3" size="84">
                                         <v-img
                                             v-if="logoPreview"
@@ -220,14 +220,17 @@ onBeforeUnmount(() => {
 const applySettings = (payload: CompanyGeneralSettingsResponse) => {
     const data = payload?.data ?? payload ?? {};
 
-    form.company_name = data?.company_name ?? "";
-    form.company_email = data?.company_email ?? "";
-    form.company_phone = data?.company_phone ?? "";
-    form.address.line_1 = data?.address?.line_1 ?? "";
-    form.address.line_2 = data?.address?.line_2 ?? "";
-    form.address.city = data?.address?.city ?? "";
-    form.address.state = data?.address?.state ?? "";
-    form.address.zip = data?.address?.zip ?? "";
+    const company = data?.company ?? {};
+    const address = company?.address ?? data?.address ?? {};
+
+    form.company_name = company?.name ?? data?.company_name ?? "";
+    form.company_email = company?.email ?? data?.company_email ?? "";
+    form.company_phone = company?.phone ?? data?.company_phone ?? "";
+    form.address.line_1 = company?.address?.line1 ?? "";
+    form.address.line_2 = company?.address?.line2 ?? "";
+    form.address.city = company?.address?.city ?? "";
+    form.address.state = company?.address?.state ?? "";
+    form.address.zip = company?.address?.zip ?? "";
     form.logo = null;
 
     initialLogoUrl.value = data?.logo_url ?? "";
@@ -252,15 +255,17 @@ const onSubmit = async () => {
     submitting.value = true;
     try {
         const response = await updateCompanyGeneralSettings({
-            name: form.company_name,
-            email: form.company_email,
-            phone: form.company_phone,
-            address: {
-                line_1: form.address.line_1,
-                line_2: form.address.line_2,
-                city: form.address.city,
-                state: form.address.state,
-                zip: form.address.zip,
+            company: {
+                name: form.company_name,
+                email: form.company_email,
+                phone: form.company_phone,
+                address: {
+                    line1: form.address.line_1,
+                    line2: form.address.line_2,
+                    city: form.address.city,
+                    state: form.address.state,
+                    zip: form.address.zip,
+                },
             },
         });
 

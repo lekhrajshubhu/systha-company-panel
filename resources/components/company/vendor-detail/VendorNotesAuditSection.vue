@@ -1,6 +1,7 @@
 <template>
   <app-card>
-    <v-card-title class="section-card-title">Notes / Audit</v-card-title>
+    <v-card-title class="section-card-title">Notes</v-card-title>
+    <v-divider></v-divider>
     <v-card-text>
       <div class="mb-4">
         <v-textarea hide-details rows="3" variant="outlined" auto-grow />
@@ -8,23 +9,17 @@
           <app-flat-button size="default" icon="mdi-content-save">Submit</app-flat-button>
         </div>
       </div>
+      <div>
+        <v-list-item v-for="(evt, i) in audit" :key="i" class="px-0">
+          <v-list-item-content>
+            <v-list-item-title class="text-subtitle-2 text-capitalize">{{ evt.title }}</v-list-item-title>
+            <v-list-item-subtitle class="caption text-medium-emphasis">{{ evt.by }} • {{ formatDate(evt.at) }}</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
 
-      <div class="caption mb-2">Recent Activity</div>
-      <v-timeline dense side="end">
-        <v-timeline-item
-          v-for="(evt, i) in audit"
-          :key="i"
-          :color="evt.type === 'approved' ? 'success' : 'primary'"
-          small
-        >
-          <div class="text-subtitle-2 text-capitalize">{{ evt.title }}</div>
-          <div class="caption text-medium-emphasis">{{ evt.by }} • {{ formatDate(evt.at) }}</div>
-        </v-timeline-item>
-
-        <v-timeline-item v-if="audit.length === 0" color="grey-darken-1" small>
-          <div class="caption text-medium-emphasis">No audit events</div>
-        </v-timeline-item>
-      </v-timeline>
+        <div v-if="audit.length === 0" class="caption text-medium-emphasis">No notes history</div>
+      </div>
+     
     </v-card-text>
   </app-card>
 </template>

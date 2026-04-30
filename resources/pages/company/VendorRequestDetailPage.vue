@@ -1,27 +1,36 @@
 <template>
     <v-container fluid>
-        <app-page-header title="Vendor Detail" subtitle="Vendor detail information." show-back />
+        <app-page-header title="Vendor Detail" subtitle="Vendor detail information.">
+
+            <template #action v-if="vendorSummary.status=='pending'">
+                <app-flat-button color="success" icon="mdi-file-document-check-outline" @click="onApprove()">Approve</app-flat-button>
+                <app-flat-button color="error" icon="mdi-file-document-remove-outline" @click="onReject()">Reject</app-flat-button>
+            </template>
+
+        </app-page-header>
         <v-container fluid>
             <v-progress-linear v-if="loading" indeterminate color="primary" class="mb-4" />
-    
-                <v-row>
-                    <v-col cols="12" md="8">
-                        <vendor-summary-section
-                            :summary="vendorSummary"
-                            @update-address="onUpdateAddress"
-                            @update-contact="onUpdateContact"
-                        />
-                        <vendor-attachments-section :attachments="vendorAttachments" />
-                        <vendor-approval-section :approval="vendorApproval" />
-                    </v-col>
-    
-                    <v-col cols="12" md="4">
+
+            <v-row>
+                <v-col cols="12" md="8">
+                    <vendor-summary-section :summary="vendorSummary" @update-address="onUpdateAddress"
+                        @update-contact="onUpdateContact" />
+                    <vendor-attachments-section :attachments="vendorAttachments" />
+                    <vendor-approval-section :approval="vendorApproval" />
+                </v-col>
+
+                <v-col cols="12" md="4">
+                    <div class="mb-6">
                         <vendor-notes-audit-section :audit="vendorAudit" />
-                    </v-col>
-                </v-row>
+                    </div>
+                    <div>
+                        <activity-timeline :audit="vendorAudit" />
+                    </div>
+                </v-col>
+            </v-row>
 
         </v-container>
-     
+
     </v-container>
 </template>
 
@@ -33,8 +42,13 @@ import VendorApprovalSection from '@/components/company/vendor-detail/VendorAppr
 import VendorAttachmentsSection from '@/components/company/vendor-detail/VendorAttachmentsSection.vue'
 import VendorNotesAuditSection from '@/components/company/vendor-detail/VendorNotesAuditSection.vue'
 import VendorSummarySection from '@/components/company/vendor-detail/VendorSummarySection.vue'
-import { getCompanyVendorDetail } from '@/services/vendors.api'
-
+import { getVendorApplicationDetail } from '@/services/vendor-applications.api'
+import ActivityTimeline from '@/components/company/vendor-detail/ActivityTimeline.vue'
+import AppFlatButton from '@/components/AppFlatButton.vue'
+import { useModalStore } from '@/stores/modal'
+import VendorApprovalForm from '@/components/company/vendor-detail/forms/VendorApprovalForm.vue'
+import VendorRejectionForm from '@/components/company/vendor-detail/forms/VendorRejectionForm.vue'
+const modal = useModalStore()
 const route = useRoute()
 const loading = ref(false)
 
@@ -126,12 +140,12 @@ const sampleApproval = {
 const vendorSummary = computed(() => ({
     name: vendor.value.name,
     type: vendor.value.type,
+    status: vendor.value.status,
     vendorCode: vendor.value.vendor_code,
     applicationDate: vendor.value.application_date,
     approvedAt: vendor.value.approved_at,
     phone: vendor.value.phone,
     email: vendor.value.email,
-    status: vendor.value.status,
     address: vendor.value.address,
     contact: vendor.value.contact,
 }))
@@ -156,13 +170,47 @@ const fetchVendor = async () => {
 
     loading.value = true
     try {
-        const response: any = await getCompanyVendorDetail(id as string)
+        const response: any = await getVendorApplicationDetail(id as string)
         mapVendorDetail(response?.data ?? response)
     } catch (error) {
         console.error('Failed to load vendor detail:', error)
     } finally {
         loading.value = false
     }
+}
+function onApprove() {
+    modal.open(
+        VendorApprovalForm,
+        {
+            onSubmit: (payload: Record<string, unknown>) => {
+                console.log('Approval submitted for vendor:', vendor.value.id, payload);
+                // TODO: Call approval API with payload
+            },
+        },
+        {
+            title: 'Approve Vendor',
+            showHeader: true,
+            fullscreen: false,
+            maxWidth: 500,
+        }
+    );
+}
+function onReject() {
+    modal.open(
+        VendorRejectionForm,
+        {
+            onSubmit: (payload: Record<string, unknown>) => {
+                console.log('Rejection submitted for vendor:', vendor.value.id, payload);
+                // TODO: Call rejection API with payload
+            },
+        },
+        {
+            title: 'Reject Vendor',
+            showHeader: true,
+            fullscreen: false,
+            maxWidth: 500,
+        }
+    );
 }
 
 onMounted(() => {

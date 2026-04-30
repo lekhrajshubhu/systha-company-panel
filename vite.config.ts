@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   envDir: path.resolve(__dirname, '../../'),
-  base: '/company-panel/',
+  base: '/company/',
   plugins: [
     vue(),
     vuetify({ autoImport: true }),

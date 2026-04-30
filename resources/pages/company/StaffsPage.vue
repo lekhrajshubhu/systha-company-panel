@@ -1,43 +1,36 @@
 <template>
-  <v-container class="py-6 px-14" fluid>
-    <div class="pa-0">
-      <v-row class="mb-4" align="center" justify="space-between">
-        <v-col cols="auto">
-          <h2 class="pa-0">User Management</h2>
-          <v-card-subtitle class="pa-0">View and manage company users.</v-card-subtitle>
-        </v-col>
-        <v-col cols="auto">
-          <app-flat-button icon="mdi-store-plus" @click="createUser">Add User</app-flat-button>
-        </v-col>
-      </v-row>
+  <v-container fluid>
+    <AppPageHeader title="User Management" subtitle="View and manage company users." show-back>
+      <template #action>
+        <app-flat-button icon="mdi-store-plus" @click="createUser">Add User</app-flat-button>
+      </template>
+    </AppPageHeader>
+    <v-container fluid>
       <v-card flat class="mb-6">
         <v-card-text class="pa-4">
-          <!-- Filters: layout modeled after VendorsPage.vue -->
-          <div class="filters-row">
-            <div class="filters-left">
-              <div class="filter-item search">
-                <v-text-field v-model="search" density="compact" variant="outlined" prepend-inner-icon="mdi-magnify"
-                  label="Search members" clearable hide-details @update:model-value="onSearch" />
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div class="d-flex align-center ga-3">
+              <div>
+                <AppSearchTextField v-model="search" label="Search" />
               </div>
-
-              <div class="filter-item role">
+              <div>
                 <v-select v-model="roleFilter" :items="roleItems" item-title="label" item-value="value"
+                width="360px"
                   density="compact" variant="outlined" label="Filter role" clearable hide-details
                   @update:model-value="onRoleFilter" />
+
+              </div>
+              <div>
+                  <app-flat-button :loading="fetchingState" icon="mdi-magnify" @click="onSearch">
+                  Search
+                </app-flat-button>
               </div>
             </div>
-
-            <div class="filters-right">
-              <v-btn icon="mdi-refresh" variant="tonal" size="small" color="medium-emphasis" @click="fetchItems" />
+            <div>
+              <!-- <div class="caption text-medium-emphasis mb-0">Total {{ totalItems }} found</div> -->
+              <v-btn icon="mdi-refresh" variant="tonal" size="small" color="warning" @click="fetchItems" />
             </div>
           </div>
-
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <div class="caption text-medium-emphasis mb-0">Total {{ totalItems }} found</div>
-            </v-col>
-          </v-row>
-
         </v-card-text>
 
         <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
@@ -50,7 +43,7 @@
               </v-avatar>
               <div>
                 <div class="font-weight-medium text-high-emphasis">{{ item.name || '-' }}</div>
-                <div class="caption text-medium-emphasis">{{ item.email || '-' }}</div>
+                <div class="caption">{{ item.email || '-' }}</div>
               </div>
             </div>
           </template>
@@ -61,10 +54,19 @@
             </v-chip>
           </template>
 
-          <template #[`item.role`]="{ item }">
+          <template #[`item.roles`]="{ item }">
             <div class="d-flex align-center">
-              <span v-if="item.role" :class="['role-dot', 'role-' + getRoleColor(item.role)]" />
-              <div class="text-capitalize caption">{{ item.role || '-' }}</div>
+              <v-chip
+                v-for="(role, index) in (item.roles ?? [])"
+                :key="index"
+                size="small"
+                variant="outlined"
+                color="info"
+                label
+                class="px-3 text-uppercase mr-2"
+              >
+                {{role}}
+              </v-chip>
             </div>
           </template>
 
@@ -72,22 +74,23 @@
             <span>{{ item.joined_at ? formatDate(item.joined_at) : '-' }}</span>
           </template>
 
-          <template #[`item.last_login_at`]="{ item }">
+          <!-- <template #[`item.last_login_at`]="{ item }">
             <span>{{ item.last_login_at ? formatDate(item.last_login_at) : '-' }}</span>
-          </template>
+          </template> -->
 
           <template #[`item.actions`]="{ item }">
             <div class="d-flex">
               <!-- <v-btn color="primary" variant="outlined" size="small" @click="viewDetails(item)">Details</v-btn> -->
 
-              <v-btn class="ml-2" color="secondary" variant="outlined" size="small" @click="editUser(item)"
+              <v-btn class="ml-2" color="primary" variant="outlined" size="small" 
+              :to="{ name: 'company.user.detail', params: { id: item.id } }"
                 aria-label="Edit user">
-                edit
+                Details
               </v-btn>
 
               <v-btn class="ml-2" color="error" variant="outlined" size="small" @click="confirmDelete(item)"
                 aria-label="Delete user">
-                delete
+                Delete
               </v-btn>
             </div>
           </template>
@@ -101,12 +104,15 @@
           </template>
         </v-data-table-server>
       </v-card>
-    </div>
+    </v-container>
   </v-container>
+
 </template>
 
 <script setup lang="ts">
 import AppFlatButton from '@/components/AppFlatButton.vue'
+import AppPageHeader from '@/components/AppPageHeader.vue'
+import AppSearchTextField from '@/components/AppSearchTextField.vue'
 import UserDeleteModal from '@/components/modals/UserDeleteModal.vue'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -119,14 +125,16 @@ interface MemberItem {
   id: number
   name: string | null
   email: string
-  role: string
+  roles?: Array<string | { name?: string; label?: string }>
   status: string
   last_login_at: string | null
   joined_at?: string | null
   created_at?: string | null
 }
 
+
 const loading = ref(false)
+const fetchingState = ref(false)
 const router = useRouter()
 const modal = useModalStore()
 const search = ref('')
@@ -146,10 +154,10 @@ const deleteModalProps = reactive({
 
 const headers = [
   { title: 'Name', key: 'name', align: 'start' as const, sortable: true },
-  { title: 'Role', key: 'role', align: 'start' as const, sortable: true },
+  { title: 'Role', key: 'roles', align: 'start' as const, sortable: true },
   { title: 'Status', key: 'status', align: 'center' as const, sortable: true },
   { title: 'Joined Date', key: 'joined_at', align: 'start' as const, sortable: true },
-  { title: 'Last Login', key: 'last_login_at', align: 'start' as const, sortable: true },
+  // { title: 'Last Login', key: 'last_login_at', align: 'start' as const, sortable: true },
   { title: 'Actions', key: 'actions', align: 'end' as const, sortable: false, width: '140px' },
 ]
 
@@ -177,11 +185,28 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
     }
 
     const response: any = await getCompanyUsers(params)
-    serverItems.value = response.data
+
+    serverItems.value = (response.data ?? []).map((row: any) => {
+      const firstName = row.fname ?? row.first_name ?? ''
+      const lastName = row.lname ?? row.last_name ?? ''
+      const fullName = `${firstName} ${lastName}`.trim()
+
+      return {
+        id: row.company_user_id ?? row.id,
+        name: row.name ?? (fullName !== '' ? fullName : null),
+        email: row.email ?? '',
+        roles: row.roles ?? [],
+        status: row.status ?? '-',
+        last_login_at: row.last_login_at ?? null,
+        joined_at: row.joined_at ?? row.created_at ?? null,
+        created_at: row.created_at ?? null,
+      } satisfies MemberItem
+    })
     totalItems.value = response.meta.total
   } catch (error) {
     console.error('Failed to fetch members:', error)
   } finally {
+    fetchingState.value = false
     loading.value = false
   }
 }
@@ -192,6 +217,8 @@ const fetchItems = () => {
 
 const onSearch = () => {
   if (debounceTimeout.value) clearTimeout(debounceTimeout.value)
+
+  fetchingState.value = true
   debounceTimeout.value = window.setTimeout(() => {
     fetchItems()
   }, 500)

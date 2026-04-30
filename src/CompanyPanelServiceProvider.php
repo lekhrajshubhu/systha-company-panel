@@ -12,12 +12,6 @@ class CompanyPanelServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/CompanyPanel.php', 'CompanyPanel');
 
-        $this->app['router']->aliasMiddleware('systha.company.auth', \Systha\Core\Http\Middleware\CompanyJwtAuth::class);
-        $this->app['router']->aliasMiddleware('systha.company.context', \Systha\Core\Http\Middleware\CompanyContextFromToken::class);
-
-        // Legacy aliases during compatibility phase.
-        $this->app['router']->aliasMiddleware('company.auth', \Systha\Core\Http\Middleware\CompanyJwtAuth::class);
-        $this->app['router']->aliasMiddleware('company.context', \Systha\Core\Http\Middleware\CompanyContextFromToken::class);
     }
 
     public function boot(): void
@@ -53,7 +47,7 @@ class CompanyPanelServiceProvider extends ServiceProvider
 
     private function registerCompanySpaFallbackRoute(): void
     {
-        $prefix = trim((string) config('CompanyPanel.public_path', 'company-panel'), '/');
+        $prefix = trim((string) config('CompanyPanel.public_path', 'company'), '/');
         $indexPath = public_path($prefix . '/index.html');
 
         Route::middleware('web')
@@ -67,7 +61,7 @@ class CompanyPanelServiceProvider extends ServiceProvider
                 }
 
                 if (!is_file($indexPath)) {
-                    abort(404, 'Company panel build not found. Run: php artisan CompanyPanel:setup');
+                    abort(404, 'Company panel build not found. Run: php artisan companypanel:setup');
                 }
 
                 return response()->file($indexPath);
@@ -77,20 +71,25 @@ class CompanyPanelServiceProvider extends ServiceProvider
 
     private function registerLegacyCompanySpaRedirect(): void
     {
-        $prefix = trim((string) config('CompanyPanel.public_path', 'company-panel'), '/');
-        $legacyPrefix = 'companys';
+        $prefix = trim((string) config('CompanyPanel.public_path', 'company'), '/');
+        $legacyPrefixes = [
+            'companys',
+            'company-panel',
+        ];
 
-        if ($prefix === $legacyPrefix) {
-            return;
+        foreach ($legacyPrefixes as $legacyPrefix) {
+            if ($prefix === $legacyPrefix) {
+                continue;
+            }
+
+            Route::middleware('web')
+                ->get($legacyPrefix . '/{any?}', function (Request $request) use ($prefix, $legacyPrefix) {
+                    $relativePath = ltrim(str_replace($legacyPrefix, '', $request->path()), '/');
+                    $target = '/' . $prefix . ($relativePath !== '' ? '/' . $relativePath : '');
+
+                    return redirect($target);
+                })
+                ->where('any', '.*');
         }
-
-        Route::middleware('web')
-            ->get($legacyPrefix . '/{any?}', function (Request $request) use ($prefix, $legacyPrefix) {
-                $relativePath = ltrim(str_replace($legacyPrefix, '', $request->path()), '/');
-                $target = '/' . $prefix . ($relativePath !== '' ? '/' . $relativePath : '');
-
-                return redirect($target);
-            })
-            ->where('any', '.*');
     }
 }

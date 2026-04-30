@@ -31,7 +31,7 @@ http.interceptors.request.use((config) => {
 });
 
 http.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error: AxiosError<{ message?: string }>) => {
     return Promise.reject(error);
   },

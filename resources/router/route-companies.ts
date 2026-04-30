@@ -8,32 +8,37 @@ const AppLayout = () => import("../layouts/AppLayout.vue");
 
 const StaffsPage = () => import("../pages/company/StaffsPage.vue");
 const StaffFormPage = () => import("../pages/company/StaffFormPage.vue");
+const StaffDetailPage = () => import("../pages/company/StaffDetailPage.vue");
 const VendorsPage = () => import("../pages/company/VendorsPage.vue");
+const VendorRequestPage = () => import("../pages/company/VendorRequestPage.vue");
+const VendorRequestDetailPage = () => import("../pages/company/VendorRequestDetailPage.vue");
 const VendorFormPage = () => import("../pages/company/VendorFormPage.vue");
 const PolicyPage = () => import("../pages/company/PolicyPage.vue");
 const DefaultSettingsPage = () => import("../pages/company/DefaultSettingsPage.vue");
-const PackageListPage = () => import("../pages/company/PackageListPage.vue");
-const PackageFormPage = () => import("../pages/company/PackageFormPage.vue");
+const CompanyPlanPage = () => import("../pages/company/CompanyPlanPage.vue");
+const CompanyPlanFormPage = () => import("../pages/company/CompanyPlanForm.vue");
 const SubscriptionsPage = () => import("../pages/company/SubscriptionsPage.vue");
 const ReportsPage = () => import("../pages/company/ReportsPage.vue");
 const CommissionReportPage = () => import("../pages/company/CommissionReportPage.vue");
 const PaymentReportPage = () => import("../pages/company/PaymentReportPage.vue");
 const PaymentCredentialsPage = () => import("../pages/company/PaymentCredentialsPage.vue");
 const PaymentCredentialFormPage = () => import("../pages/company/PaymentCredentialFormPage.vue");
+const EmailTemplatePage = () => import("../pages/company/EmailTemplatePage.vue");
+const RolesAndPermissionsPage = () => import("../pages/company/RolesAndPermissionsPage.vue");
 
 export const companyMenuGroups = [
     {
         group: "Overview",
         items: [
             { title: "Dashboard", routeName: "company.dashboard", icon: "mdi-chart-box-multiple-outline" },
-            { title: "Users", routeName: "company.users", icon: "mdi-account-multiple-outline" },
+            { title: "New Vendors", routeName: "company.vendor-requests", icon: "mdi-storefront-plus-outline" },
             { title: "Vendors", routeName: "company.vendors", icon: "mdi-storefront-outline" },
         ],
     },
     {
         group: "Memberships",
         items: [
-            { title: "Packages", routeName: "company.membership.package", icon: "mdi-gift-outline" },
+            { title: "Plans", routeName: "company.plans", icon: "mdi-gift-outline" },
             { title: "Subscriptions", routeName: "company.membership.subscriptions", icon: "mdi-autorenew" },
         ],
     },
@@ -47,9 +52,12 @@ export const companyMenuGroups = [
     {
         group: "Configuration",
         items: [
+            { title: "Users", routeName: "company.users", icon: "mdi-account-multiple-outline" },
             { title: "Policies", routeName: "company.policies", icon: "mdi-file-document-multiple-outline" },
             { title: "Payment Gateways", routeName: "company.config.payment", icon: "mdi-wallet-bifold-outline" },
             { title: "General", routeName: "company.config.general", icon: "mdi-cog-outline" },
+            { title: "Email Templates", routeName: "company.config.email-templates", icon: "mdi-email-outline" },
+            { title: "Roles & Permissions", routeName: "company.config.roles", icon: "mdi-account-key-outline" },
         ],
     },
 ];
@@ -83,6 +91,12 @@ export const companyRoutes: RouteRecordRaw[] = [
                 meta: { breadcrumb: ["Overview", "Users"] }
             },
             {
+                path: "users/:id",
+                name: "company.user.detail",
+                component: StaffDetailPage,
+                meta: { breadcrumb: ["Overview", "Users", "Detail"] }
+            },
+            {
                 path: "users/create",
                 name: "company.staff-create",
                 component: StaffFormPage,
@@ -93,6 +107,18 @@ export const companyRoutes: RouteRecordRaw[] = [
                 name: "company.staff-edit",
                 component: StaffFormPage,
                 meta: { breadcrumb: ["Overview", "Users", "Edit"] }
+            },
+            {
+                path: "vendor-requests",
+                name: "company.vendor-requests",
+                component: VendorRequestPage,
+                meta: { breadcrumb: ["Overview", "New Vendor Requests"] }
+            },
+            {
+                path: "vendor-requests/:id",
+                name: "company.vendor-requests.detail",
+                component: VendorRequestDetailPage,
+                meta: { breadcrumb: ["Overview", "New Vendor Requests Detail"] }
             },
             {
                 path: "vendors",
@@ -119,16 +145,16 @@ export const companyRoutes: RouteRecordRaw[] = [
                 meta: { breadcrumb: ["Configuration", "Policies"] }
             },
             {
-                path: "membership/packages",
-                name: "company.membership.package",
-                component: PackageListPage,
-                meta: { breadcrumb: ["Memberships", "Package List"] }
+                path: "company/plans",
+                name: "company.plans",
+                component: CompanyPlanPage,
+                meta: { breadcrumb: ["Memberships", "Plans"] }
             },
             {
-                path: "membership/packages/create",
-                name: "company.membership.package-create",
-                component: PackageFormPage,
-                meta: { breadcrumb: ["Memberships", "Package List", "Create"] }
+                path: "company/plan-form/:id?",
+                name: "company.plan-form",
+                component: CompanyPlanFormPage,
+                meta: { breadcrumb: ["Memberships", "Plans", "Form"] }
             },
             {
                 path: "membership/subscriptions",
@@ -171,6 +197,18 @@ export const companyRoutes: RouteRecordRaw[] = [
                 name: "company.config.general",
                 component: DefaultSettingsPage,
                 meta: { breadcrumb: ["Configuration", "General Settings"] }
+            },
+            {
+                path: "config/email-templates",
+                name: "company.config.email-templates",
+                component: EmailTemplatePage,
+                meta: { breadcrumb: ["Configuration", "Email Templates"] }
+            },
+            {
+                path: "config/roles",
+                name: "company.config.roles",
+                component: RolesAndPermissionsPage,
+                meta: { breadcrumb: ["Configuration", "Roles & Permissions"] }
             },
         ],
     },

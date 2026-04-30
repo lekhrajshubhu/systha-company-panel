@@ -6,7 +6,7 @@ import { useAppContextStore } from "@/stores/appContext";
 import NotFoundPage from "@/pages/shared/NotFoundPage.vue";
 
 export const router = createRouter({
-  history: createWebHistory("/company-panel/"),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",

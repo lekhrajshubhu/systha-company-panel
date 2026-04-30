@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'public_path' => 'company-panel',
+    'public_path' => 'company',
     'frontend_path' => 'resources',
 ];

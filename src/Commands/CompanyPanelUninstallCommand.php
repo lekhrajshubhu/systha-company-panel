@@ -9,11 +9,11 @@ class CompanyPanelUninstallCommand extends Command
 {
     protected $signature = 'CompanyPanel:uninstall';
 
-    protected $description = 'Remove published company panel assets from public/company-panel';
+    protected $description = 'Remove published company panel assets from public/company';
 
     public function handle(): int
     {
-        $targetPath = public_path(config('CompanyPanel.public_path', 'company-panel'));
+        $targetPath = public_path(config('CompanyPanel.public_path', 'company'));
 
         if (!is_dir($targetPath)) {
             $this->warn("Nothing to remove. Path not found: {$targetPath}");

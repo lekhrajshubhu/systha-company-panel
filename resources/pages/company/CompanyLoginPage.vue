@@ -42,7 +42,7 @@
           {{ errorMessage }}
         </v-alert>
 
-        <app-flat-button type="submit" :loading="isSubmitting" block>Sign In</app-flat-button>
+        <app-flat-button type="submit" :loading="isSubmitting" size="large" block>Sign In</app-flat-button>
       </v-form>
     </div>
   </div>

@@ -1,76 +1,70 @@
 import { http } from "@/services/http.config";
-import { useAppContextStore } from "@/stores/appContext";
 
 export type CompanyGeneralSettingsPayload = {
-  name: string;
-  email: string;
-  phone: string;
-  address: {
-    line_1: string;
-    line_2: string;
-    city: string;
-    state: string;
-    zip: string;
+  company: {
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    address: {
+      line1: string;
+      line2?: string | null;
+      city: string;
+      state: string;
+      zip: string;
+      lat?: number | null;
+      lng?: number | null;
+    };
   };
 };
 
 export type CompanyGeneralSettingsResponse = {
   data: {
-    company_name: string;
-    company_email: string;
-    company_phone: string;
-    logo_url: string | null;
-    address: {
-      line_1: string;
-      line_2: string;
-      city: string;
-      state: string;
-      zip: string;
+    company_name?: string;
+    company_email?: string;
+    company_phone?: string;
+    logo_url?: string | null;
+    address?: {
+      line_1?: string;
+      line_2?: string;
+      city?: string;
+      state?: string;
+      zip?: string;
+    };
+    company?: {
+      name?: string;
+      email?: string | null;
+      phone?: string | null;
+      address?: {
+        line1?: string;
+        line2?: string | null;
+        city?: string;
+        state?: string;
+        zip?: string;
+        lat?: number | null;
+        lng?: number | null;
+      };
     };
   };
 };
 
-const getCompanyCode = (): string => {
-  const store = useAppContextStore();
-  const companyCode = store.user?.company?.code;
-
-  if (!companyCode) {
-    throw new Error("Company code not found in session.");
-  }
-
-  return companyCode;
-};
-
 export const getCompanyGeneralSettings = async (): Promise<CompanyGeneralSettingsResponse> => {
-  const companyCode = getCompanyCode();
-  const response = await http.get<CompanyGeneralSettingsResponse>(`/api/company/${companyCode}/general-settings`);
+  const response = await http.get<CompanyGeneralSettingsResponse>(`/company/info`);
   return response.data;
 };
 
 export const updateCompanyGeneralSettings = async (
   payload: CompanyGeneralSettingsPayload,
 ): Promise<CompanyGeneralSettingsResponse> => {
-  const companyCode = getCompanyCode();
-  const response = await http.put<CompanyGeneralSettingsResponse>(`/api/company/${companyCode}/general-settings`, {
-    name: payload.name ?? "",
-    email: payload.email ?? "",
-    phone: payload.phone ?? "",
-    address: {
-      line_1: payload.address?.line_1 ?? "",
-      line_2: payload.address?.line_2 ?? "",
-      city: payload.address?.city ?? "",
-      state: payload.address?.state ?? "",
-      zip: payload.address?.zip ?? "",
-    },
-  });
+  const response = await http.put<CompanyGeneralSettingsResponse>(`/company/settings`, payload);
 
   return response.data;
 };
 
+export const updateCompanygeneralSettings = updateCompanyGeneralSettings;
+
 export const updateCompanyLogo = async (
   payload: { logo?: File | null; remove_logo?: boolean },
 ): Promise<CompanyGeneralSettingsResponse> => {
-  const companyCode = getCompanyCode();
   const formData = new FormData();
 
   formData.append("_method", "PUT");
@@ -84,7 +78,7 @@ export const updateCompanyLogo = async (
   }
 
   const response = await http.post<CompanyGeneralSettingsResponse>(
-    `/api/company/${companyCode}/general-settings/logo`,
+    `/company/update-logo`,
     formData,
   );
 

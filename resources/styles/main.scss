@@ -1,2 +1,9 @@
 @use './variables' as *;
 @use './base';
+
+.text-medium-emphasis {
+    color: rgb(0 0 0 / 89%) !important;
+}
+.text-body-2 {
+    font-weight: 500 !important;
+}

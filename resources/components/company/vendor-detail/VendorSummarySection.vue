@@ -17,8 +17,8 @@
                 </div>
 
                 <div class="summary-row mb-3">
-                  <div class="summary-title">Vendor Code</div>
-                  <div class="summary-value">{{ summary.vendorCode || '-' }}</div>
+                  <div class="summary-title">Status</div>
+                  <div class="summary-value">{{ summary.status || '-' }}</div>
                 </div>
 
                 <div class="summary-row mb-3">
@@ -93,6 +93,7 @@ defineProps<{
     approvedAt: string | null
     phone: string
     email: string
+    status: string
     address: {
       add1?: string
       add2?: string

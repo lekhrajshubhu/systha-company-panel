@@ -10,16 +10,14 @@ class CompanyPanelSetupCommand extends Command
 {
     protected $signature = 'companypanel:setup {--skip-install : Skip npm install/ci and only run build}';
 
-    protected $description = 'Build company panel assets and publish to public/company-panel';
+    protected $description = 'Build company panel assets and publish to public/company';
 
     public function handle(): int
     {
-        $this->ensureJwtConfigured();
-
         $packageRoot = dirname(__DIR__, 2);
         $frontendPath = $packageRoot . '/' . trim((string) config('CompanyPanel.frontend_path', 'resources'), '/');
         $distPath = $frontendPath . '/dist';
-        $targetPath = public_path(config('CompanyPanel.public_path', 'company-panel'));
+        $targetPath = public_path(config('CompanyPanel.public_path', 'company'));
 
         if (!is_dir($frontendPath)) {
             $this->error("Frontend path not found: {$frontendPath}");
@@ -52,20 +50,6 @@ class CompanyPanelSetupCommand extends Command
         $this->info("Company panel assets published to: {$targetPath}");
 
         return self::SUCCESS;
-    }
-
-    private function ensureJwtConfigured(): void
-    {
-        $jwtConfigPath = config_path('jwt.php');
-        if (!file_exists($jwtConfigPath)) {
-            $this->call('vendor:publish', [
-                '--provider' => 'Tymon\\JWTAuth\\Providers\\LaravelServiceProvider',
-            ]);
-        }
-
-        if (!env('JWT_SECRET')) {
-            $this->call('jwt:secret');
-        }
     }
 
     private function runProcess(array $command, string $cwd, string $title): bool

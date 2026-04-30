@@ -22,13 +22,15 @@
             <v-card>
                 <v-card-title class="text-h6">HTML Source</v-card-title>
                 <v-card-text>
-                    <v-textarea
-                        v-model="htmlBuffer"
-                        auto-grow
-                        rows="14"
-                        variant="outlined"
-                        label="Paste or edit HTML"
-                    />
+   
+                        <v-textarea
+                            v-model="htmlBuffer"
+                            auto-grow
+                            rows="14"
+                            variant="outlined"
+                            label="Paste or edit HTML"
+                        />
+            
                 </v-card-text>
                 <v-card-actions class="justify-end">
                     <v-btn variant="text" @click="htmlDialog = false">
@@ -76,7 +78,7 @@ const internalValue = computed({
 });
 
 const openHtmlView = () => {
-    htmlBuffer.value = props.modelValue ?? "";
+    htmlBuffer.value = formatHtml(props.modelValue ?? "");
     htmlDialog.value = true;
 };
 
@@ -85,9 +87,51 @@ const applyHtml = () => {
     htmlDialog.value = false;
 };
 
+const formatHtml = (html: string): string => {
+    if (!html) return "";
+    
+    // Add proper indentation to HTML using tabs
+    const formatted = html
+        .replace(/></g, '>\n<')
+        .split('\n')
+        .reduce((lines, line) => {
+            const trimmed = line.trim();
+            if (!trimmed) return lines;
+            
+            // Track current indentation level
+            const currentIndent = lines.length > 0 ? 
+                (lines[lines.length - 1].match(/^\t*/)?.[0]?.length || 0) : 0;
+            
+            let indentLevel = currentIndent;
+            
+            // Decrease indent for closing tags
+            if (trimmed.startsWith('</')) {
+                indentLevel = Math.max(0, currentIndent - 1);
+            }
+            
+            // Add the indented line
+            lines.push('\t'.repeat(indentLevel) + trimmed);
+            
+            // Increase indent for opening tags (except self-closing and closing tags)
+            if (trimmed.startsWith('<') && 
+                !trimmed.startsWith('</') && 
+                !trimmed.endsWith('/>') && 
+                !trimmed.includes('</') &&
+                !trimmed.match(/^<[^>]*\/>/)) {
+                // Next line will have increased indent
+                return lines;
+            }
+            
+            return lines;
+        }, [] as string[])
+        .join('\n');
+    
+    return formatted;
+};
+
 const copyHtml = async () => {
     try {
-        await navigator.clipboard.writeText(props.modelValue ?? "");
+        await navigator.clipboard.writeText(formatHtml(props.modelValue ?? ""));
     } catch (error) {
         console.error("Failed to copy HTML:", error);
     }

@@ -6,7 +6,7 @@ export const getCompanyUsers = async <T>(params: any = {}): Promise<T> => {
 };
 
 export const getCompanyUserDetail = async <T>(id: number | string): Promise<T> => {
-  const response = await http.get<T>(`/company/users/${id}/detail`);
+  const response = await http.get<T>(`/company/users/${id}/details`);
   return response.data;
 };
 

@@ -97,7 +97,11 @@ export const startTokenAutoRefresh = (): void => {
 }
 
 const redirectToLogin = async (): Promise<void> => {
-  window.location.href = '/company-panel/login'
+  const baseUrl = import.meta.env.BASE_URL.endsWith('/')
+    ? import.meta.env.BASE_URL
+    : `${import.meta.env.BASE_URL}/`
+
+  window.location.href = `${baseUrl}login`
 }
 
 const refreshTokenOnce = async (): Promise<string | null> => {

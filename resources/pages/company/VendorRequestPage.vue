@@ -1,6 +1,6 @@
 <template>
   <v-container fluid>
-    <app-page-header title="Vendor Management" subtitle="View and manage company vendors." />
+    <app-page-header title="New Vendor Request" subtitle="Manage vendor requests." />
     <v-container fluid>
       <v-card flat class="mb-6">
         <v-card-text class="pa-4">
@@ -98,12 +98,12 @@
 import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getCompanyVendors } from '@/services/vendors.api'
+import { fetchVendorApplications } from '@/services/vendor-applications.api'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import AppSearchTextField from '@/components/AppSearchTextField.vue'
 
 interface VendorItem {
-  company_vendor_id: number
+  id: number
   type?: string
   name?: string | null
   phone?: string | null
@@ -121,9 +121,9 @@ const statusFilter = ref<string | null>(null)
 const typeFilter = ref<string | null>(null)
 const itemsPerPage = ref(15)
 const serverItems = ref<VendorItem[]>([
-  { company_vendor_id: 1, type: 'cleaning', name: 'Sparkle Cleaners', phone: '+1 555 0100', email: 'hello@sparkle.example', city: 'Austin', status: 'approved' },
-  { company_vendor_id: 2, type: 'plumbing', name: 'FlowFix Plumbing', phone: '+1 555 0200', email: 'contact@flowfix.example', city: 'Dallas', status: 'pending review' },
-  { company_vendor_id: 3, type: 'electrical', name: 'Bright Sparks', phone: '+1 555 0300', email: 'info@brightsparks.example', city: 'Houston', status: 'approved' },
+  { id: 1, type: 'cleaning', name: 'Sparkle Cleaners', phone: '+1 555 0100', email: 'hello@sparkle.example', city: 'Austin', status: 'approved' },
+  { id: 2, type: 'plumbing', name: 'FlowFix Plumbing', phone: '+1 555 0200', email: 'contact@flowfix.example', city: 'Dallas', status: 'pending review' },
+  { id: 3, type: 'electrical', name: 'Bright Sparks', phone: '+1 555 0300', email: 'info@brightsparks.example', city: 'Houston', status: 'approved' },
 ])
 const totalItems = ref(serverItems.value.length)
 const debounceTimeout = ref<number | null>(null)
@@ -161,7 +161,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
       params.business_type = typeFilter.value
     }
 
-    const response: any = await getCompanyVendors(params)
+    const response: any = await fetchVendorApplications(params)
     serverItems.value = response.data
     totalItems.value = response.meta.total
   } catch (error) {
@@ -208,7 +208,7 @@ const createVendor = () => {
 
 const viewDetails = (item: VendorItem) => {
 
-  router.push({ name: 'company.vendor.detail', params: { id: item.company_vendor_id } })
+  router.push({ name: 'company.vendor-requests.detail', params: { id: item.id } })
 }
 </script>
 

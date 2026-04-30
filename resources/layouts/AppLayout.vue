@@ -60,7 +60,11 @@
                     :key="section.group"
                     class="mb-2"
                 >
-                    <div class="px-5 py-2 text-overline text-medium-emphasis">
+                    <div class="px-5 py-2" style="    font-weight: 700;
+    font-size: 0.82rem;
+    color: #878787;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;">
                         {{ section.group }}
                     </div>
                     <v-list nav density="comfortable" class="py-0">
@@ -84,7 +88,7 @@
                     :icon="drawer ? 'mdi-dock-left' : 'mdi-dock-right'"
                     @click="drawer = !drawer"
                 />
-                <div class="app-search-wrap">
+                <!-- <div class="app-search-wrap">
                     <v-text-field
                         density="compact"
                         variant="outlined"
@@ -96,7 +100,7 @@
                         placeholder="Search ..."
                         prepend-inner-icon="mdi-magnify"
                     />
-                </div>
+                </div> -->
             </div>
 
             <v-spacer />
@@ -242,12 +246,8 @@ const breadcrumbItems = computed(() => {
 }
 
 .app-main {
-    overflow-y: auto;
-    overflow-x: hidden;
-    // padding-bottom: 200px;
-    // background-color: #f3f3f3;
-    // background-color: #f7f7f7;
     background: linear-gradient(135deg, #f2f5f9, #f9f9f9);
+    overflow-y: auto;
 }
 
 .app-drawer {

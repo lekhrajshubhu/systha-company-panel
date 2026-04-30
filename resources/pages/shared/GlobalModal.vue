@@ -50,9 +50,7 @@ const isFullscreen = computed(() => Boolean(modal.options.fullscreen));
     .v-card-title {
         // font-size: 0.8rem;
         padding: 0 0.5rem 0 1.5rem !important;
-        text-transform: uppercase;
-        font-weight: 700;
-        color: #717171;
+        text-transform: capitalize;
     }
 }
 
