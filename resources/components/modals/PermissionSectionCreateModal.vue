@@ -48,8 +48,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useModalStore } from '@/stores/modal'
-import { usePermissionSections } from '@/composables/usePermissionSections'
-import { rolesPermissionsApi } from '@/services/roles-permissions.api'
+import { usePermissionSections, type PermissionSection as ComposablePermissionSection } from '@/composables/usePermissionSections'
+import { rolesPermissionsApi, type PermissionSection } from '@/services/roles-permissions.api'
 import AppTextField from '@/components/AppTextField.vue'
 import AppTextArea from '@/components/AppTextArea.vue'
 import AppFlatButton from '../AppFlatButton.vue'
@@ -162,7 +162,7 @@ const saveSection = async () => {
                 description: response.data.description || ''
             } : {
                 ...newSection,
-                id: processedRoute.value
+                id: Date.now() // Use timestamp as temporary id
             }
             permissionSections.value.push(sectionToAdd)
             

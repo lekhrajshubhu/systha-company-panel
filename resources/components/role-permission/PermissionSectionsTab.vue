@@ -60,13 +60,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { usePermissionSections } from '@/composables/usePermissionSections'
+import { computed, ref, onMounted } from 'vue'
+import { rolesPermissionsApi, type PermissionSection } from '@/services/roles-permissions.api'
 import { useModalStore } from '@/stores/modal'
 import PermissionSectionCreateModal from '@/components/modals/PermissionSectionCreateModal.vue'
 
-const { permissionSections } = usePermissionSections()
 const modal = useModalStore()
+const permissionSections = ref<PermissionSection[]>([])
+
+const loadPermissionSections = async () => {
+  try {
+    permissionSections.value = await rolesPermissionsApi.getPermissionSections()
+  } catch (error) {
+    console.error('Failed to load permission sections:', error)
+  }
+}
+
+onMounted(() => {
+  loadPermissionSections()
+})
 
 const sectionHeaders = computed(() => [
     { title: 'Section Name', key: 'name', sortable: true },

@@ -13,9 +13,9 @@
             <div class="d-flex align-center">
                 <h4>Permissions for :  <span class="text-primary text-uppercase">{{ selectedRole.name }}</span></h4>
             </div>
-            <!-- <v-btn color="primary" prepend-icon="mdi-plus" variant="flat">
-                Add Section
-            </v-btn> -->
+            <app-flat-button color="primary" prepend-icon="mdi-content-save" :loading="savingState" @click="handleSave()">
+                Save Permission
+            </app-flat-button>
         </v-card-title>
         <table class="permission-table">
             <thead>
@@ -32,11 +32,11 @@
                         <td class="pa-2">
                             <strong>{{ section.name }}</strong>
                         </td>
-                        <td v-for="operation in allOperations" :key="`${section.id}-${operation}`"
+                        <td v-for="operation in allOperations" :key="`${section.code}-${operation}`"
                             class="text-center pa-2">
                             <v-checkbox v-if="section.operations.includes(operation)"
-                                :model-value="hasCrudPermission(selectedRole, section.id, operation)"
-                                @update:model-value="toggleCrudPermission(selectedRole, section.id, operation)"
+                                :model-value="hasCrudPermission(selectedRole, section.code, operation)"
+                                @update:model-value="toggleCrudPermission(selectedRole, section.code, operation)"
                                 hide-details density="compact" class="d-inline-flex" />
                         </td>
                     </tr>
@@ -47,27 +47,21 @@
 </template>
 
 <script setup lang="ts">
+import { type Role } from '@/composables/useRoles'
+import { type PermissionSection } from '@/composables/usePermissionSections'
+import AppFlatButton from '../AppFlatButton.vue'
+import { ref } from 'vue'
+import { rolesPermissionsApi } from '@/services/roles-permissions.api'
+
 interface Permission {
     id: string
     name: string
     description: string
 }
 
-interface Role {
-    id: string
-    name: string
-    description: string
-    permissions: string[]
-}
+const savingState = ref(false)
 
-interface PermissionSection {
-    id: string
-    name: string
-    description: string
-    operations: string[]
-}
-
-defineProps<{
+const props = defineProps<{
     selectedRole: Role | null
     allOperations: string[]
     filteredPermissionSections: PermissionSection[]
@@ -79,12 +73,51 @@ const emit = defineEmits<{
 }>()
 
 const hasCrudPermission = (role: Role, sectionId: string, operation: string) => {
-    const permissionId = `${sectionId}.${operation}`
+    const permissionId = `company.${sectionId}.${operation}`
     return role.permissions.includes(permissionId)
 }
 
 const toggleCrudPermission = (role: Role, sectionId: string, operation: string) => {
     emit('toggleCrudPermission', role, sectionId, operation)
+}
+
+const handleSave = async () => {
+    if (!props.selectedRole) {
+        console.error('No role selected')
+        return
+    }
+
+    savingState.value = true
+
+    try {
+        // Collect only selected permissions from the matrix
+        const selectedPermissions: string[] = []
+        
+        props.filteredPermissionSections.forEach((section: PermissionSection) => {
+            section.operations.forEach((operation: string) => {
+                const permissionId = `company.${section.code}.${operation}`
+                if (hasCrudPermission(props.selectedRole!, section.code, operation)) {
+                    selectedPermissions.push(permissionId)
+                }
+            })
+        })
+
+        console.log('Saving selected permissions for role:', props.selectedRole)
+        console.log('Selected permissions:', selectedPermissions)
+        
+        // Call API to assign permissions to role
+        const response = await rolesPermissionsApi.assignRolePermissions(props.selectedRole.id, {
+            permissions: selectedPermissions
+        })
+
+        console.log('API Response:', response)
+        console.log('Selected permissions saved successfully')
+        
+    } catch (error) {
+        console.error('Failed to save permissions:', error)
+    } finally {
+        savingState.value = false
+    }
 }
 </script>
 

@@ -1,65 +1,65 @@
 import { ref } from 'vue'
 
 export interface Role {
-    id: string
+    id: number
+    code: string
     name: string
-    description: string
     permissions: string[]
 }
 
 export function useRoles() {
     const roles = ref<Role[]>([
         {
-            id: 'admin',
+            id: 1,
+            code: 'admin',
             name: 'Administrator',
-            description: 'Full system access with all permissions',
             permissions: [
-                'subscriptions.view', 'subscriptions.create', 'subscriptions.update', 'subscriptions.delete',
-                'vendors.view', 'vendors.create', 'vendors.update', 'vendors.delete',
-                'vendor-requests.view', 'vendor-requests.create', 'vendor-requests.update', 'vendor-requests.delete',
-                'teams.view', 'teams.create', 'teams.update', 'teams.delete',
-                'reports.view', 'reports.create', 'reports.delete', 'reports.export',
-                'payment-credentials.view', 'payment-credentials.create', 'payment-credentials.update', 'payment-credentials.delete',
-                'policy.view', 'policy.create', 'policy.update', 'policy.delete',
-                'total-sales-revenue.view', 'total-sales-revenue.export',
-                'customer-analytics.view', 'customer-analytics.export',
-                'billing.view', 'billing.create', 'billing.update', 'billing.delete',
-                'notifications.view', 'notifications.create', 'notifications.update', 'notifications.delete'
+                'company.subscriptions.view', 'company.subscriptions.create', 'company.subscriptions.update', 'company.subscriptions.delete',
+                'company.vendors.view', 'company.vendors.create', 'company.vendors.update', 'company.vendors.delete',
+                'company.vendor-requests.view', 'company.vendor-requests.create', 'company.vendor-requests.update', 'company.vendor-requests.delete',
+                'company.teams.view', 'company.teams.create', 'company.teams.update', 'company.teams.delete',
+                'company.reports.view', 'company.reports.create', 'company.reports.delete', 'company.reports.export',
+                'company.payment-credentials.view', 'company.payment-credentials.create', 'company.payment-credentials.update', 'company.payment-credentials.delete',
+                'company.policy.view', 'company.policy.create', 'company.policy.update', 'company.policy.delete',
+                'company.total-sales-revenue.view', 'company.total-sales-revenue.export',
+                'company.customer-analytics.view', 'company.customer-analytics.export',
+                'company.billing.view', 'company.billing.create', 'company.billing.update', 'company.billing.delete',
+                'company.notifications.view', 'company.notifications.create', 'company.notifications.update', 'company.notifications.delete'
             ]
         },
         {
-            id: 'manager',
+            id: 2,
+            code: 'manager',
             name: 'Manager',
-            description: 'Management access with limited permissions',
             permissions: [
-                'subscriptions.view', 'subscriptions.update',
-                'vendors.view', 'vendors.create', 'vendors.update',
-                'vendor-requests.view', 'vendor-requests.update',
-                'teams.view', 'teams.create', 'teams.update',
-                'reports.view', 'reports.create', 'reports.export',
-                'billing.view', 'billing.update',
-                'notifications.view', 'notifications.update'
+                'company.subscriptions.view', 'company.subscriptions.update',
+                'company.vendors.view', 'company.vendors.create', 'company.vendors.update',
+                'company.vendor-requests.view', 'company.vendor-requests.update',
+                'company.teams.view', 'company.teams.create', 'company.teams.update',
+                'company.reports.view', 'company.reports.create', 'company.reports.export',
+                'company.billing.view', 'company.billing.update',
+                'company.notifications.view', 'company.notifications.update'
             ]
         },
         {
-            id: 'staff',
+            id: 3,
+            code: 'staff',
             name: 'Staff Member',
-            description: 'Limited access for daily operations',
             permissions: [
-                'subscriptions.view',
-                'vendors.view',
-                'vendor-requests.view',
-                'teams.view',
-                'reports.view',
-                'notifications.view'
+                'company.subscriptions.view',
+                'company.vendors.view',
+                'company.vendor-requests.view',
+                'company.teams.view',
+                'company.reports.view',
+                'company.notifications.view'
             ]
         },
         {
-            id: 'service_provider',
+            id: 4,
+            code: 'service_provider',
             name: 'Service Provider',
-            description: 'External service provider with specific job access',
             permissions: [
-                'assigned-job.view', 'assigned-job.update'
+                'company.assigned-job.view', 'company.assigned-job.update'
             ]
         }
     ])

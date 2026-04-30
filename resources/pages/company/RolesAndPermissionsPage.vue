@@ -36,7 +36,11 @@
                                 </template>
                                 
                                 <v-list-item-title>{{ role.name }}</v-list-item-title>
-                                <v-list-item-subtitle>{{ role.description }}</v-list-item-subtitle>
+                                <!-- <v-list-item-subtitle>
+                                    <v-chip size="small" label variant="outlined" color="primary">
+                                        {{ role.code }}
+                                    </v-chip>
+                                </v-list-item-subtitle> -->
                                 
                                 <template v-slot:append>
                                     <v-btn
@@ -76,6 +80,7 @@
                                     :filtered-permission-sections="filteredPermissionSections"
                                     :crud-operations="crudOperations"
                                     @toggle-crud-permission="toggleCrudPermission"
+                                    @save-permissions="handleSavePermissions"
                                 />
                             </v-window-item>
 
@@ -93,33 +98,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppPageHeader from '@/components/AppPageHeader.vue'
 import PermissionMatrixTab from '@/components/role-permission/PermissionMatrixTab.vue'
 import PermissionSectionsTab from '@/components/role-permission/PermissionSectionsTab.vue'
-import { usePermissionSections } from '@/composables/usePermissionSections'
-import { useRoles } from '@/composables/useRoles'
+import { rolesPermissionsApi, type Role, type PermissionSection } from '@/services/roles-permissions.api'
 import { useModalStore } from '@/stores/modal'
 import RoleCreateEditModal from '@/components/modals/RoleCreateEditModal.vue'
 import RoleDeleteModal from '@/components/modals/RoleDeleteModal.vue'
-
-interface Role {
-    id: string
-    name: string
-    description: string
-    permissions: string[]
-}
 
 const modal = useModalStore()
 const editingRole = ref<Role | null>(null)
 const roleToDelete = ref<Role | null>(null)
 const selectedRole = ref<Role | null>(null)
 const activeTab = ref('matrix')
+const roles = ref<Role[]>([])
+const permissionSections = ref<PermissionSection[]>([])
 
+const loadRoles = async () => {
+  try {
+    roles.value = await rolesPermissionsApi.getRoleList()
+    
+    console.log(roles.value);
 
-const { roles } = useRoles()
+  } catch (error) {
+    console.error('Failed to load roles:', error)
+  }
+}
 
-const { permissionSections } = usePermissionSections()
+const loadPermissionSections = async () => {
+  try {
+    permissionSections.value = await rolesPermissionsApi.getPermissionSections()
+  } catch (error) {
+    console.error('Failed to load permission sections:', error)
+  }
+}
+
+onMounted(() => {
+  loadRoles()
+  loadPermissionSections()
+})
 
 const crudOperations: Record<string, { name: string; icon: string }> = {
     create: { name: 'Create', icon: 'mdi-plus' },
@@ -131,10 +149,8 @@ const crudOperations: Record<string, { name: string; icon: string }> = {
 
 const allOperations = computed(() => {
     const operations = new Set<string>()
-    permissionSections.value.forEach(section => {
-        section.operations.forEach(operation => {
-            operations.add(operation)
-        })
+    permissionSections.value.forEach((section: PermissionSection) => {
+        section.operations.forEach((operation: string) => operations.add(operation))
     })
     return Array.from(operations)
 })
@@ -144,10 +160,10 @@ const filteredPermissionSections = computed(() => {
     if (!selectedRole.value) return permissionSections.value
     
     // Only show Assigned Job section for service_provider role
-    if (selectedRole.value.id === 'service_provider') {
-        return permissionSections.value.filter(section => 
-            section.id === 'assigned-job' || 
-            !['total-sales-revenue', 'customer-analytics', 'payment-credentials', 'policy'].includes(section.id)
+    if (selectedRole.value.code === 'service_provider') {
+        return permissionSections.value.filter((section: PermissionSection) => 
+            section.code === 'assigned-job' || 
+            !['total-sales-revenue', 'customer-analytics', 'payment-credentials', 'policy'].includes(section.code)
         )
     }
     
@@ -155,8 +171,8 @@ const filteredPermissionSections = computed(() => {
 })
 
 const toggleCrudPermission = (role: Role, sectionId: string, operation: string) => {
-    const permissionId = `${sectionId}.${operation}`
-    const roleIndex = roles.value.findIndex(r => r.id === role.id)
+    const permissionId = `company.${sectionId}.${operation}`
+    const roleIndex = roles.value.findIndex((r: Role) => r.id === role.id)
     if (roleIndex > -1) {
         const permissionIndex = roles.value[roleIndex].permissions.indexOf(permissionId)
         if (permissionIndex > -1) {
@@ -164,6 +180,26 @@ const toggleCrudPermission = (role: Role, sectionId: string, operation: string) 
         } else {
             roles.value[roleIndex].permissions.push(permissionId)
         }
+    }
+}
+
+const handleSavePermissions = async (role: Role, permissions: string[]) => {
+    try {
+        console.log('Saving permissions for role:', role.name)
+        console.log('Permissions to save:', permissions)
+        
+        // Update the role permissions in the local state
+        const roleIndex = roles.value.findIndex((r: Role) => r.id === role.id)
+        if (roleIndex > -1) {
+            roles.value[roleIndex].permissions = permissions
+        }
+        
+        // TODO: Call API to save permissions to backend
+        // await rolesPermissionsApi.updateRolePermissions(role.id, permissions)
+        
+        console.log('Permissions saved successfully')
+    } catch (error) {
+        console.error('Failed to save permissions:', error)
     }
 }
 
