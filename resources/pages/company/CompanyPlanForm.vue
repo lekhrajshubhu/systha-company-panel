@@ -60,7 +60,7 @@
                 <v-row>
                   <v-col cols="12" md="6">
                     <div>
-                      <app-text-field v-model="form.plans.monthly.price" label="Monthly Price (USD *)"
+                      <app-text-field v-model="form.plans.monthly.amount" label="Monthly Price (USD *)"
                         label-class="field-label" placeholder="0.00" type="number" min="0" step="0.01"
                         hide-details="auto" :rules="priceRules" />
 
@@ -74,7 +74,7 @@
                   </v-col>
                   <v-col cols="12" md="6">
                     <div>
-                      <app-text-field v-model="form.plans.yearly.price" label="Yearly Price (USD *)"
+                      <app-text-field v-model="form.plans.yearly.amount" label="Yearly Price (USD *)"
                         label-class="field-label" placeholder="0.00" type="number" min="0" step="0.01"
                         hide-details="auto" :rules="priceRules" />
 
@@ -138,13 +138,13 @@ const form = ref({
   plans: {
     monthly: {
       recurring: 'month',
-      price: '0.00',
+      amount: '0.00',
       currency: 'USD',
       stripePriceId: '',
     },
     yearly: {
       recurring: 'year',
-      price: '0.00',
+      amount: '0.00',
       currency: 'USD',
       stripePriceId: '',
     },
@@ -206,14 +206,14 @@ const prefillFromPlanDetail = (plan: any) => {
 
   if (monthly) {
     form.value.plans.monthly.recurring = 'month'
-    form.value.plans.monthly.price = String(monthly?.price ?? form.value.plans.monthly.price ?? '0.00')
+    form.value.plans.monthly.amount = String(monthly?.price ?? form.value.plans.monthly.amount ?? '0.00')
     form.value.plans.monthly.currency = monthly?.currency ?? form.value.plans.monthly.currency ?? 'USD'
     form.value.plans.monthly.stripePriceId = monthly?.stripe_price_id ?? monthly?.stripePriceId ?? form.value.plans.monthly.stripePriceId ?? ''
   }
 
   if (yearly) {
     form.value.plans.yearly.recurring = 'year'
-    form.value.plans.yearly.price = String(yearly?.price ?? form.value.plans.yearly.price ?? '0.00')
+    form.value.plans.yearly.amount = String(yearly?.price ?? form.value.plans.yearly.amount ?? '0.00')
     form.value.plans.yearly.currency = yearly?.currency ?? form.value.plans.yearly.currency ?? 'USD'
     form.value.plans.yearly.stripePriceId = yearly?.stripe_price_id ?? yearly?.stripePriceId ?? form.value.plans.yearly.stripePriceId ?? ''
   }
@@ -267,12 +267,12 @@ const savePlan = async () => {
       plan_prices: [
         {
           recurring_type: form.value.plans.monthly.recurring,
-          price: Number(form.value.plans.monthly.price) || 0,
+          amount: Number(form.value.plans.monthly.amount) || 0,
           currency: form.value.plans.monthly.currency,
         },
         {
           recurring_type: form.value.plans.yearly.recurring,
-          price: Number(form.value.plans.yearly.price) || 0,
+          amount: Number(form.value.plans.yearly.amount) || 0,
           currency: form.value.plans.yearly.currency,
         },
       ],

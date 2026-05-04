@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from "vue-router";
 import CompanyLoginPage from "@/pages/company/CompanyLoginPage.vue";
 import CompanyDashboardPage from "@/pages/company/CompanyDashboardPage.vue";
 import VendorDetailPage from "@/pages/company/VendorDetailPage.vue";
+import CompanyContextSelectPage from "@/pages/company/CompanyContextSelectPage.vue";
 
 const AppLayout = () => import("../layouts/AppLayout.vue");
 
@@ -68,6 +69,12 @@ export const companyRoutes: RouteRecordRaw[] = [
         name: "company.login",
         component: CompanyLoginPage,
         meta: { title: "Login" }
+    },
+    {
+        path: "select-context",
+        name: "company.context-select",
+        component: CompanyContextSelectPage,
+        meta: { title: "Select Context", requiresAuth: true, skipContextCheck: false }
     },
     {
         path: "",

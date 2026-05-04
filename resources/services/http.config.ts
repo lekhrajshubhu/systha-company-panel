@@ -9,8 +9,8 @@ const normalizeBaseUrl = (value: string): string => {
 };
 
 const apiBaseUrl = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL || "/");
-const defaultAppCode = "cb55a48b-da96-4be7-8188-0c6969606dc2";
-const appCode = import.meta.env.VITE_APP_CODE || defaultAppCode;
+// const defaultAppCode = "cb55a48b-da96-4be7-8188-0c6969606dc2";
+// const appCode = import.meta.env.VITE_APP_CODE || defaultAppCode;
 
 export const http = axios.create({
   baseURL: apiBaseUrl,
@@ -22,7 +22,7 @@ export const http = axios.create({
 http.interceptors.request.use((config) => {
   const token = getAuthToken();
 
-  config.headers["App-Code"] = appCode;
+  // config.headers["App-Code"] = appCode;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -104,7 +104,22 @@
             </div>
 
             <v-spacer />
-
+            {{ hasMultipleContexts }}
+            <v-tooltip v-if="hasMultipleContexts" location="bottom">
+                <template #activator="{ props }">
+                    <v-btn
+                        v-bind="props"
+                        variant="tonal"
+                        class="mr-1"
+                        color="primary"
+                        aria-label="Switch context"
+                        @click="goToContextSelect"
+                    >
+                    switch company <v-icon>mdi-swap-horizontal</v-icon>
+                </v-btn>
+                </template>
+                <span>Switch context</span>
+            </v-tooltip>
             <v-menu min-width="200px" rounded offset="4">
                 <template #activator="{ props }">
                     <v-btn icon v-bind="props" class="mr-2">
@@ -189,18 +204,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import GlobalModal from "@/pages/shared/GlobalModal.vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
 import { useAppContextStore } from "@/stores/appContext";
+import {
+    AUTH_ACTIVE_CONTEXT_KEY,
+    AUTH_CONTEXTS_KEY,
+    AUTH_PENDING_CONTEXT_SELECTION_KEY,
+    type LoginContext,
+} from "@/services/auth.api";
 
 const route = useRoute();
+const router = useRouter();
 const display = useDisplay();
 const store = useAppContextStore();
 
 const drawer = ref(display.mdAndUp.value);
 const menuQuery = ref("");
+
+const authVersion = ref(0);
 
 watch(
     () => display.mdAndUp.value,
@@ -226,6 +250,53 @@ const filteredMenuGroups = computed(() => {
 const resetMenuFilter = () => {
     menuQuery.value = "";
 };
+
+const hasMultipleContexts = computed(() => {
+    void authVersion.value;
+    const stored = localStorage.getItem(AUTH_CONTEXTS_KEY);
+    console.log({stored})
+    if (!stored) return false;
+    try {
+        const contexts = JSON.parse(stored) as LoginContext[];
+        return contexts.length > 1;
+    } catch {
+        return false;
+    }
+});
+
+const goToContextSelect = async () => {
+    localStorage.removeItem(AUTH_ACTIVE_CONTEXT_KEY);
+    localStorage.setItem(AUTH_PENDING_CONTEXT_SELECTION_KEY, "true");
+    try {
+        const existingAccountStr = localStorage.getItem("companypanel_account");
+        if (existingAccountStr) {
+            const existingAccount = JSON.parse(existingAccountStr);
+            if (existingAccount && typeof existingAccount === "object") {
+                delete existingAccount.company;
+                localStorage.setItem(
+                    "companypanel_account",
+                    JSON.stringify(existingAccount),
+                );
+            }
+        }
+    } catch {
+        // ignore
+    }
+    authVersion.value++;
+    await router.push({ name: "company.context-select" });
+};
+
+const onAuthChanged = () => {
+    authVersion.value++;
+};
+
+onMounted(() => {
+    window.addEventListener("auth-changed", onAuthChanged);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener("auth-changed", onAuthChanged);
+});
 
 const breadcrumbItems = computed(() => {
     const labels = (route.meta.breadcrumb as string[] | undefined) ?? [

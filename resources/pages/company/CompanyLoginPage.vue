@@ -15,7 +15,7 @@
           variant="outlined"
           density="comfortable"
           prepend-inner-icon="mdi-email-outline"
-          autocomplete="email"
+          autocomplete="off"
           class="mb-2"
         />
 
@@ -53,7 +53,15 @@ import AppFlatButton from '@/components/AppFlatButton.vue'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import logoSrc from '@/assets/logo-mark.svg'
-import { AUTH_ACTIVE_CONTEXT_KEY, AUTH_CONTEXTS_KEY, loginCompany, saveActiveContext, saveAuthToken } from '@/services/auth.api'
+import {
+  AUTH_ACTIVE_CONTEXT_KEY,
+  AUTH_CONTEXTS_KEY,
+  AUTH_PENDING_CONTEXT_SELECTION_KEY,
+  loginCompany,
+  saveActiveContext,
+  saveAuthToken,
+} from '@/services/auth.api'
+import { clearAuthSession, TENANTPANEL_ACCOUNT_KEY } from '@/services/companyAuth'
 
 const email = ref('')
 const password = ref('')
@@ -82,29 +90,88 @@ const onSubmit = async () => {
       password: password.value,
     })
 
-    const token = payload?.token;
+    console.log({payload});
+    const token = payload?.token
+    if (token) saveAuthToken(token)
 
-    console.log({token});
-    if (token) saveAuthToken(token);
+    const contexts = Array.isArray(payload?.contexts) ? payload.contexts : []
 
-    if (Array.isArray(payload?.contexts) && payload.contexts.length) {
-      localStorage.setItem(AUTH_CONTEXTS_KEY, JSON.stringify(payload.contexts));
+    if (contexts.length) {
+      localStorage.setItem(AUTH_CONTEXTS_KEY, JSON.stringify(contexts))
+      window.dispatchEvent(new Event('auth-changed'))
     }
 
-
-
-    // Persist active context returned by the server.
-    try {
-      saveActiveContext(payload.active_context);
-    } catch {
-      // ignore
+    // Store basic account info for the app shell (company filled after context selection).
+    if (payload?.client) {
+      const name =
+        `${payload.client?.first_name ?? ''} ${payload.client?.last_name ?? ''}`.trim() ||
+        'Company User'
+      localStorage.setItem(
+        TENANTPANEL_ACCOUNT_KEY,
+        JSON.stringify({
+          id: payload.client?.id ?? '',
+          name,
+          email: payload.client?.email ?? email.value.trim(),
+        }),
+      )
     }
-    try {
-      localStorage.setItem(AUTH_ACTIVE_CONTEXT_KEY, JSON.stringify(payload.active_context));
-    } catch {
-      // ignore
+
+    const requiresContextSelection = Boolean(payload?.requires_context_selection)
+    const activeContext = payload?.active_context ?? null
+
+    if (!requiresContextSelection && activeContext) {
+      saveActiveContext(payload.active_context)
+      localStorage.removeItem(AUTH_PENDING_CONTEXT_SELECTION_KEY)
+
+      const activeCompany = activeContext.company
+      const client = payload.client
+      const name = `${client?.first_name ?? ''} ${client?.last_name ?? ''}`.trim() || 'Company User'
+      const rawRole = (activeContext as any)?.roles?.[0]
+      const role = typeof rawRole === 'string' ? rawRole : rawRole?.label ?? rawRole?.value
+      const account = {
+        id: client?.id ?? '',
+        name,
+        email: client?.email ?? email.value.trim(),
+        role,
+        company: activeCompany?.code
+          ? { name: activeCompany?.name ?? '', code: activeCompany.code }
+          : undefined,
+      }
+      localStorage.setItem(TENANTPANEL_ACCOUNT_KEY, JSON.stringify(account))
+      await router.push({ name: 'company.dashboard' })
+      return
     }
-    await router.push({ name: 'company.dashboard' })
+
+    // If context selection is required and no active context is set, go to context selector.
+    if (requiresContextSelection && !activeContext) {
+      // Ensure we don't carry over a stale active context/account from a previous session.
+      localStorage.removeItem(AUTH_ACTIVE_CONTEXT_KEY)
+      try {
+        const existingAccountStr = localStorage.getItem(TENANTPANEL_ACCOUNT_KEY)
+        if (existingAccountStr) {
+          const existingAccount = JSON.parse(existingAccountStr)
+          if (existingAccount && typeof existingAccount === 'object') {
+            delete existingAccount.company
+            localStorage.setItem(TENANTPANEL_ACCOUNT_KEY, JSON.stringify(existingAccount))
+          }
+        }
+      } catch {
+        // ignore
+      }
+      if (contexts.length) {
+        localStorage.setItem(AUTH_CONTEXTS_KEY, JSON.stringify(contexts))
+      }
+      localStorage.setItem(AUTH_PENDING_CONTEXT_SELECTION_KEY, 'true')
+      window.dispatchEvent(new Event('auth-changed'))
+      await router.push({ name: 'company.context-select' })
+      return
+    }
+
+    clearAuthSession()
+    localStorage.removeItem(AUTH_ACTIVE_CONTEXT_KEY)
+    localStorage.removeItem(AUTH_CONTEXTS_KEY)
+    localStorage.removeItem(AUTH_PENDING_CONTEXT_SELECTION_KEY)
+    throw new Error('Unable to determine login context. Please contact support.')
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Unable to connect to server.'
   } finally {

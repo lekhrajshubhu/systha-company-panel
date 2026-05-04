@@ -45,13 +45,13 @@
             </div>
           </template>
 
-          <template #[`item.monthly_price`]="{ item }">
-            <div class="text-right">{{ formatCurrency(item.monthly_price) }}/ <span
+          <template #[`item.monthly_amount`]="{ item }">
+            <div class="text-right">{{ formatCurrency(item.monthly_amount) }}/ <span
                 class="caption text-medium-emphasis">mo</span> </div>
           </template>
 
-          <template #[`item.yearly_price`]="{ item }">
-            <div class="text-right">{{ formatCurrency(item.yearly_price) }}/ <span
+          <template #[`item.yearly_amount`]="{ item }">
+            <div class="text-right">{{ formatCurrency(item.yearly_amount) }}/ <span
                 class="caption text-medium-emphasis">yr</span></div>
           </template>
 
@@ -124,8 +124,8 @@ interface PackageItem {
   id: number
   name?: string
   short?: string
-  monthly_price?: string | number
-  yearly_price?: string | number
+  monthly_amount?: string | number
+  yearly_amount?: string | number
   features?: string[]
   stripe_product?: string | null
   stripe_product_id?: string | null
@@ -139,9 +139,9 @@ const search = ref('')
 const statusFilter = ref<string | null>(null)
 const itemsPerPage = ref(15)
 const serverItems = ref<PackageItem[]>([
-  { id: 1, name: 'Starter', short: 'Basic access', monthly_price: '0.00', yearly_price: '0.00', features: ['Listings'], stripe_product: 'prod_Starter_001', price_count: 1, status: 'active' },
-  { id: 2, name: 'Pro', short: 'Most popular', monthly_price: '49.99', yearly_price: '499.00', features: ['Priority support', 'Analytics'], stripe_product: 'prod_Pro_002', price_count: 3, status: 'active' },
-  { id: 3, name: 'Enterprise', short: 'Advanced features', monthly_price: '199.00', yearly_price: '1999.00', features: ['SLA', 'Dedicated account'], stripe_product: 'prod_Ent_003', price_count: 5, status: 'draft' },
+  { id: 1, name: 'Starter', short: 'Basic access', monthly_amount: '0.00', yearly_amount: '0.00', features: ['Listings'], stripe_product: 'prod_Starter_001', price_count: 1, status: 'active' },
+  { id: 2, name: 'Pro', short: 'Most popular', monthly_amount: '49.99', yearly_amount: '499.00', features: ['Priority support', 'Analytics'], stripe_product: 'prod_Pro_002', price_count: 3, status: 'active' },
+  { id: 3, name: 'Enterprise', short: 'Advanced features', monthly_amount: '199.00', yearly_amount: '1999.00', features: ['SLA', 'Dedicated account'], stripe_product: 'prod_Ent_003', price_count: 5, status: 'draft' },
 ])
 const totalItems = ref(serverItems.value.length)
 const debounceTimeout = ref<number | null>(null)
@@ -151,8 +151,8 @@ const connectingStripeId = ref<number | null>(null)
 const headers = [
   { title: 'Name', key: 'name', align: 'start' as const, sortable: true, width: 200 },
   // { title: 'Features', key: 'features', align: 'start' as const, sortable: false, minWidth: 200 },
-  { title: 'Monthly', key: 'monthly_price', align: 'end' as const, sortable: true, width: 200 },
-  { title: 'Yearly', key: 'yearly_price', align: 'end' as const, sortable: true, width: 200 },
+  { title: 'Monthly', key: 'monthly_amount', align: 'end' as const, sortable: true, width: 200 },
+  { title: 'Yearly', key: 'yearly_amount', align: 'end' as const, sortable: true, width: 200 },
   { title: 'Stripe Product', key: 'stripe_product', align: 'start' as const, sortable: false, width: 200 },
   { title: 'Status', key: 'status', align: 'center' as const, sortable: true, width: 100 },
   { title: 'Actions', key: 'actions', align: 'end' as const, sortable: false, width: 200 },
