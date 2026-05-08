@@ -182,6 +182,7 @@ function onApprove() {
     modal.open(
         VendorApprovalForm,
         {
+            vendor: vendor.value,
             onSubmit: (payload: Record<string, unknown>) => {
                 console.log('Approval submitted for vendor:', vendor.value.id, payload);
                 // TODO: Call approval API with payload

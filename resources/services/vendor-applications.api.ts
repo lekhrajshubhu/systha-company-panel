@@ -11,6 +11,6 @@ export const getVendorApplicationDetail = async <T>(id: number | string): Promis
 };
 
 export const applicationApproval = async <T>(id: number | string, payload: any): Promise<T> => {
-  const response = await http.post<T>(`/vendor-applications/${id}/approve`, payload);
+  const response = await http.post<T>(`company/vendor-applications/${id}/approve`, payload);
   return response.data;
 };

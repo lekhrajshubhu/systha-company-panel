@@ -40,7 +40,10 @@
        
 
           <template #[`item.type`]="{ item }">
-            <div class="text-capitalize">{{ item.type || '-' }}</div>
+            <div class="d-flex align-center">
+              <span class="type-dot" :style="{ backgroundColor: getTypeColor(item.type) }" />
+              <span class="text-capitalize" style="margin-left:8px">{{ item.type?.replace(/_/g, ' ') || '-' }}</span>
+            </div>
           </template>
 
           <template #[`item.name`]="{ item }">
@@ -67,7 +70,7 @@
           </template>
 
           <template #[`item.status`]="{ item }">
-            <v-chip :color="item.status === 'active' ? 'success' : 'grey-darken-1'" size="small" variant="tonal" label
+            <v-chip :color="item.status === 'approved' ? 'success' : 'warning'" size="small" variant="tonal" label
               class="px-3 text-uppercase">
               {{ item.status }}
             </v-chip>
@@ -125,6 +128,25 @@ const serverItems = ref<VendorItem[]>([
   { id: 2, type: 'plumbing', name: 'FlowFix Plumbing', phone: '+1 555 0200', email: 'contact@flowfix.example', city: 'Dallas', status: 'pending review' },
   { id: 3, type: 'electrical', name: 'Bright Sparks', phone: '+1 555 0300', email: 'info@brightsparks.example', city: 'Houston', status: 'approved' },
 ])
+// Map of normalized type -> color hex
+const typeColorMap = ref<Record<string, string>>({})
+
+// Color palette to assign from
+const colorPalette = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#60a5fa', '#f97316', '#84cc16']
+
+function normalizeType(t?: string) {
+  return (t || '').toLowerCase().trim()
+}
+
+function buildTypeColors(items: VendorItem[]) {
+  const types = Array.from(new Set(items.map(i => normalizeType(i.type)).filter(Boolean)))
+  const map: Record<string, string> = {}
+  types.forEach((type, idx) => {
+    map[type] = colorPalette[idx % colorPalette.length]
+  })
+  typeColorMap.value = map
+}
+
 const totalItems = ref(serverItems.value.length)
 const debounceTimeout = ref<number | null>(null)
 
@@ -163,6 +185,8 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
 
     const response: any = await fetchVendorApplications(params)
     serverItems.value = response.data
+    // build color map from returned types
+    buildTypeColors(serverItems.value)
     totalItems.value = response.meta.total
   } catch (error) {
     console.error('Failed to fetch vendors:', error)
@@ -175,6 +199,9 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
 const fetchItems = () => {
   loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [] })
 }
+
+// initialize colors for sample data
+buildTypeColors(serverItems.value)
 
 const onSearch = () => {
   if (debounceTimeout.value) clearTimeout(debounceTimeout.value)
@@ -210,6 +237,24 @@ const viewDetails = (item: VendorItem) => {
 
   router.push({ name: 'company.vendor-requests.detail', params: { id: item.id } })
 }
+
+function getTypeColor(type?: string) {
+  const key = normalizeType(type)
+  return typeColorMap.value[key] || '#6b7280'
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+.type-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #6b7280; /* default gray */
+}
+
+/* layout helpers already used in the project */
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-end { justify-content: flex-end; }
+</style>
