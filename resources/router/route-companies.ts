@@ -4,8 +4,11 @@ import CompanyLoginPage from "@/pages/company/CompanyLoginPage.vue";
 import CompanyDashboardPage from "@/pages/company/CompanyDashboardPage.vue";
 import VendorDetailPage from "@/pages/company/VendorDetailPage.vue";
 import CompanyContextSelectPage from "@/pages/company/CompanyContextSelectPage.vue";
+import CompanySetupPage from "@/pages/company/CompanySetupPage.vue";
+import CompanyChangePasswordPage from "@/pages/company/CompanyChangePasswordPage.vue";
 
 const AppLayout = () => import("../layouts/AppLayout.vue");
+const SetupLayout = () => import("../layouts/SetupLayout.vue");
 
 const StaffsPage = () => import("../pages/company/StaffsPage.vue");
 const StaffFormPage = () => import("../pages/company/StaffFormPage.vue");
@@ -26,6 +29,7 @@ const PaymentCredentialsPage = () => import("../pages/company/PaymentCredentials
 const PaymentCredentialFormPage = () => import("../pages/company/PaymentCredentialFormPage.vue");
 const EmailTemplatePage = () => import("../pages/company/EmailTemplatePage.vue");
 const RolesAndPermissionsPage = () => import("../pages/company/RolesAndPermissionsPage.vue");
+const SubscriptionDetailPage = () => import("../pages/company/SubscriptionDetailPage.vue");
 
 export const companyMenuGroups = [
     {
@@ -77,6 +81,19 @@ export const companyRoutes: RouteRecordRaw[] = [
         meta: { title: "Select Context", requiresAuth: true, skipContextCheck: false }
     },
     {
+        path: "setup",
+        component: SetupLayout,
+        meta: { title: "Setup", requiresAuth: true, skipContextCheck: false },
+        children: [
+            {
+                path: "",
+                name: "company.setup",
+                component: CompanySetupPage,
+                meta: { title: "Setup" }
+            }
+        ]
+    },
+    {
         path: "",
         redirect: "dashboard",
     },
@@ -85,6 +102,12 @@ export const companyRoutes: RouteRecordRaw[] = [
         component: AppLayout,
         meta: { context: "company", menu: companyMenuGroups, requiresAuth: true },
         children: [
+            {
+                path: "change-password",
+                name: "company.change-password",
+                component: CompanyChangePasswordPage,
+                meta: { breadcrumb: ["Overview", "Change Password"] }
+            },
             {
                 path: "dashboard",
                 name: "company.dashboard",
@@ -168,6 +191,12 @@ export const companyRoutes: RouteRecordRaw[] = [
                 name: "company.membership.subscriptions",
                 component: SubscriptionsPage,
                 meta: { breadcrumb: ["Memberships", "Subscriptions"] }
+            },
+            {
+                path: "membership/subscriptions/:id",
+                name: "company.membership.subscription.detail",
+                component: SubscriptionDetailPage,
+                meta: { breadcrumb: ["Memberships", "Subscriptions", "Detail"] }
             },
             {
                 path: "reports/commission",

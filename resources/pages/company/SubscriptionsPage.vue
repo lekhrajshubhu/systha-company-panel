@@ -1,156 +1,156 @@
 <template>
-  <v-container class="py-6 px-14" fluid>
-    <div class="pa-0">
-      <div class="mb-4">
-        <h2 class="pa-0">Membership Subscriptions</h2>
-        <v-card-subtitle class="pa-0">View and manage membership subscriptions.</v-card-subtitle>
-      </div>
-      <v-card flat class="mb-6">
-        <v-card-text class="pa-4">
-          <div class="filters-row">
-            <div class="filters-left">
-              <div class="filter-item search">
-                <v-text-field v-model="search" density="compact" variant="outlined" prepend-inner-icon="mdi-magnify"
-                  label="Search subscriptions" clearable hide-details @update:model-value="onSearch" />
+  <v-container fluid>
+    <app-page-header title="Membership Subscriptions" subtitle="View and manage membership subscriptions." />
+      <v-container fluid>
+        <app-card class="mb-6">
+          <v-card-text class="pa-4">
+            <div class="filters-row">
+              <div class="filters-left">
+                <div class="filter-item search">
+                  <v-text-field v-model="search" density="compact" variant="outlined" prepend-inner-icon="mdi-magnify"
+                    label="Search subscriptions" clearable hide-details @update:model-value="onSearch" />
+                </div>
+  
+                <div class="filter-item vendor">
+                  <v-select
+                    v-model="vendorFilter"
+                    :items="vendorOptions"
+                    density="compact"
+                    variant="outlined"
+                    label="Vendor"
+                    clearable
+                    hide-details
+                  />
+                </div>
+  
+                <div class="filter-item status">
+                  <v-select
+                    v-model="statusFilter"
+                    :items="statusOptions"
+                    density="compact"
+                    variant="outlined"
+                    label="Status"
+                    clearable
+                    hide-details
+                  />
+                </div>
+  
+                <div class="filter-item date-start">
+                  <v-date-input
+                    v-model="dateStart"
+                    prepend-inner-icon="mdi-calendar"
+                    density="compact"
+                    variant="outlined"
+                    prepend-icon=""
+                    label="Start date"
+                    format="YYYY-MM-DD"
+                    open-on-focus
+                    hide-details
+                  />
+                </div>
+  
+                <div class="filter-item date-end">
+                  <v-date-input
+                    v-model="dateEnd"
+                    prepend-inner-icon="mdi-calendar"
+                    density="compact"
+                    prepend-icon=""
+                    variant="outlined"
+                    label="End date"
+                    format="YYYY-MM-DD"
+                    open-on-focus
+                    hide-details
+                  />
+                </div>
               </div>
-
-              <div class="filter-item vendor">
-                <v-select
-                  v-model="vendorFilter"
-                  :items="vendorOptions"
-                  density="compact"
-                  variant="outlined"
-                  label="Vendor"
-                  clearable
-                  hide-details
-                />
-              </div>
-
-              <div class="filter-item status">
-                <v-select
-                  v-model="statusFilter"
-                  :items="statusOptions"
-                  density="compact"
-                  variant="outlined"
-                  label="Status"
-                  clearable
-                  hide-details
-                />
-              </div>
-
-              <div class="filter-item date-start">
-                <v-date-input
-                  v-model="dateStart"
-                  prepend-inner-icon="mdi-calendar"
-                  density="compact"
-                  variant="outlined"
-                  prepend-icon=""
-                  label="Start date"
-                  format="YYYY-MM-DD"
-                  open-on-focus
-                  hide-details
-                />
-              </div>
-
-              <div class="filter-item date-end">
-                <v-date-input
-                  v-model="dateEnd"
-                  prepend-inner-icon="mdi-calendar"
-                  density="compact"
-                  prepend-icon=""
-                  variant="outlined"
-                  label="End date"
-                  format="YYYY-MM-DD"
-                  open-on-focus
-                  hide-details
-                />
+  
+              <div class="filters-right">
+                <v-btn icon="mdi-refresh" variant="tonal"  size="small" color="warning" @click="fetchItems" />
               </div>
             </div>
-
-            <div class="filters-right">
-              <v-btn icon="mdi-refresh" variant="tonal"  size="small" color="warning" @click="fetchItems" />
-            </div>
-          </div>
-
-          <v-row class="mt-2">
-            <v-col cols="12">
-              <div class="caption text-medium-emphasis mb-0">Total {{ totalItems }} found</div>
-            </v-col>
-          </v-row>
-
-        </v-card-text>
-
-        <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
-          :items-length="totalItems" :loading="loading" :search="search" @update:options="loadItems"
-          :hide-default-footer="totalItems <= itemsPerPage">
-          <template #[`item.subs_code`]="{ item }">
-            <div class="font-weight-medium">{{ item.subs_code || '-' }}</div>
-          </template>
-
-          <template #[`item.vendor`]="{ item }">
-            <div class="d-flex align-center ga-3 py-2">
-              <v-avatar color="primary" variant="tonal" size="32">
-                <v-icon size="18">mdi-storefront</v-icon>
-              </v-avatar>
+  
+            <v-row class="mt-2">
+              <v-col cols="12">
+                <div class="caption text-medium-emphasis mb-0">Total {{ totalItems }} found</div>
+              </v-col>
+            </v-row>
+  
+          </v-card-text>
+  
+          <v-data-table-server v-model:items-per-page="itemsPerPage" :headers="headers" :items="serverItems"
+            :items-length="totalItems" :loading="loading" :search="search" @update:options="loadItems"
+            :hide-default-footer="totalItems <= itemsPerPage">
+            <template #[`item.subs_code`]="{ item }">
+              <div class="font-weight-medium">{{ item.subs_code || '-' }}</div>
+            </template>
+  
+            <template #[`item.vendor`]="{ item }">
+              <div class="d-flex align-center ga-3 py-2">
+                <v-avatar color="primary" variant="tonal" size="32">
+                  <v-icon size="18">mdi-storefront</v-icon>
+                </v-avatar>
+                <div>
+                  <div class="font-weight-medium text-high-emphasis">{{ item.vendor?.name || '-' }}</div>
+                  <!-- <div class="caption text-medium-emphasis">Code: {{ item.vendor?.vendor_code || '-' }}</div> -->
+                </div>
+              </div>
+            </template>
+  
+            <template #[`item.package`]="{ item }">
               <div>
-                <div class="font-weight-medium text-high-emphasis">{{ item.vendor?.name || '-' }}</div>
-                <!-- <div class="caption text-medium-emphasis">Code: {{ item.vendor?.vendor_code || '-' }}</div> -->
+                <div class="font-weight-medium text-high-emphasis text-capitalize">{{ item.package?.name || '-' }}</div>
+                <div v-if="item.package?.short" class="caption text-medium-emphasis">{{ item.package.short }}</div>
+  
               </div>
-            </div>
-          </template>
-
-          <template #[`item.package`]="{ item }">
-            <div>
-              <div class="font-weight-medium text-high-emphasis">{{ item.package?.name || '-' }}</div>
-              <div v-if="item.package?.short" class="caption text-medium-emphasis">{{ item.package.short }}</div>
-
-            </div>
-          </template>
-
-          <!-- <template #[`item.plan`]="{ item }">
-            <v-chip :color="item.plan === 'yearly' ? 'primary' : 'info'" size="small" variant="tonal" label class="px-3 text-uppercase">
-              {{ item.plan ? item.plan.charAt(0).toUpperCase() + item.plan.slice(1) : '-' }}
-            </v-chip>
-          </template> -->
-
-          <template #[`item.date`]="{ item }">
-            <div>{{ formatDate(item.date || item.created_at) }}</div>
-          </template>
-
-          <template #[`item.status`]="{ item }">
-            <v-chip :color="item.status === 'active' ? 'success' : 'grey-darken-1'" size="small" variant="tonal" label
-              class="px-3 text-uppercase">
-              {{ item.status || '-' }}
-            </v-chip>
-          </template>
-
-          <template #[`item.amount`]="{ item }">
-            <div>{{ formatCurrency(item.amount) }} / <span class="caption text-medium-emphasis">{{item.plan}}</span></div>
-          </template>
-
-          <template #[`item.actions`]="{ item }">
-            <v-btn variant="outlined" size="small" color="primary">
-              Details
-            </v-btn>
-          </template>
-
-          <template #no-data>
-            <div class="pa-12 text-center">
-              <v-icon size="64" color="disabled" class="mb-4">mdi-receipt</v-icon>
-              <div class="text-h6 text-medium-emphasis">No subscriptions found</div>
-              <p class="text-body-2 text-disabled">Try adjusting your search.</p>
-            </div>
-          </template>
-        </v-data-table-server>
-      </v-card>
-    </div>
+            </template>
+  
+            <!-- <template #[`item.plan`]="{ item }">
+              <v-chip :color="item.plan === 'yearly' ? 'primary' : 'info'" size="small" variant="tonal" label class="px-3 text-uppercase">
+                {{ item.plan ? item.plan.charAt(0).toUpperCase() + item.plan.slice(1) : '-' }}
+              </v-chip>
+            </template> -->
+  
+            <template #[`item.date`]="{ item }">
+              <div>{{ formatDate(item.date || item.created_at) }}</div>
+            </template>
+  
+            <template #[`item.status`]="{ item }">
+              <v-chip :color="item.status === 'active' ? 'success' : 'grey-darken-1'" size="small" variant="tonal" label
+                class="px-3 text-uppercase">
+                {{ item.status || '-' }}
+              </v-chip>
+            </template>
+  
+            <template #[`item.amount`]="{ item }">
+              <div>{{ formatCurrency(item.amount) }} / <span class="caption text-medium-emphasis">{{item.plan}}</span></div>
+            </template>
+  
+            <template #[`item.actions`]="{ item }">
+              <v-btn @click="router.push({ name: 'company.membership.subscription.detail', params: { id: String(item.id) } })" variant="outlined" size="small" color="primary">
+                Details
+              </v-btn>
+            </template>
+  
+            <template #no-data>
+              <div class="pa-12 text-center">
+                <v-icon size="64" color="disabled" class="mb-4">mdi-receipt</v-icon>
+                <div class="text-h6 text-medium-emphasis">No subscriptions found</div>
+                <p class="text-body-2 text-disabled">Try adjusting your search.</p>
+              </div>
+            </template>
+          </v-data-table-server>
+        </app-card>
+      </v-container>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { getCompanySubscriptions } from '@/services/subscriptions.api'
+import { useRouter } from 'vue-router'
+import { getCompanySubscribers } from '@/services/subscriptions.api'
 import { formatCurrency, formatDate } from '@/utils'
+import AppCard from '@/components/AppCard.vue'
+import AppPageHeader from '@/components/AppPageHeader.vue'
 
 interface SubscriptionItem {
   id: number
@@ -219,7 +219,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
       params.date_end = dateEnd.value
     }
 
-    const response: any = await getCompanySubscriptions(params)
+    const response: any = await getCompanySubscribers(params)
     serverItems.value = response.data
     totalItems.value = response.meta.total
   } catch (error) {
@@ -232,6 +232,9 @@ const loadItems = async ({ page, itemsPerPage, sortBy }: any) => {
 const fetchItems = () => {
   loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [] })
 }
+
+// router for navigation to subscription detail
+const router = useRouter()
 
 const onSearch = () => {
   if (debounceTimeout.value) clearTimeout(debounceTimeout.value)

@@ -83,20 +83,21 @@
 
           <template #[`item.actions`]="{ item }">
             <div class="d-flex align-center justify-end ga-2">
-              <v-btn variant="outlined" size="small" color="primary">
-                View
-              </v-btn>
-              <v-btn variant="outlined" size="small" color="primary" @click="editPlan(item)">
-                Edit
-              </v-btn>
-
               <v-btn v-if="!item.stripe_product" variant="outlined" size="small"
               @click="handleConnectStripe(item)"
               :loading="connectingStripeId === item.id"
               :disabled="connectingStripeId !== null"
-                color="primary">
+                color="success">
                 Connect Stripe
               </v-btn>
+          
+              <v-btn variant="outlined" size="small" @click="editPlan(item)">
+                Edit
+              </v-btn>
+              <v-btn variant="outlined" size="small" color="error" @click="deletePlan(item)">
+                delete
+              </v-btn>
+
             </div>
           </template>
 
@@ -117,8 +118,10 @@
 import AppFlatButton from '@/components/AppFlatButton.vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { connectStripe, getCompanyPlans } from '@/services/company-plans.api'
+import { connectStripe, getCompanyPlans, deleteCompanyPlan } from '@/services/company-plans.api'
 import AppPageHeader from '@/components/AppPageHeader.vue'
+import PlanDeleteModal from '@/components/modals/PlanDeleteModal.vue'
+import { useModalStore } from '@/stores/modal'
 
 interface PackageItem {
   id: number
@@ -174,6 +177,28 @@ const handleConnectStripe = async (item: PackageItem) => {
 
 const editPlan = (item: PackageItem) => {
   router.push({ name: 'company.plan-form', params: { id: item.id } })
+}
+const deletePlan = (item: PackageItem) => {
+  const modalStore = useModalStore()
+  
+  modalStore.open(
+    PlanDeleteModal,
+    {
+      planName: item.name || `Plan #${item.id}`,
+      planId: item.id,
+      onSuccess: async () => {
+        modalStore.close()
+        await fetchItems() // Refresh the list
+      },
+      onCancel: () => {
+        modalStore.close()
+      }
+    },
+    {
+      title: 'Delete Plan',
+      maxWidth: 400
+    }
+  )
 }
 const formatCurrency = (value: string | number | undefined) => {
   if (value == null || value === '') return '-'

@@ -62,6 +62,7 @@ import {
   saveAuthToken,
 } from '@/services/auth.api'
 import { clearAuthSession, TENANTPANEL_ACCOUNT_KEY } from '@/services/companyAuth'
+import { getPostLoginRouteName } from '@/utils/companySetup'
 
 const email = ref('')
 const password = ref('')
@@ -138,7 +139,7 @@ const onSubmit = async () => {
           : undefined,
       }
       localStorage.setItem(TENANTPANEL_ACCOUNT_KEY, JSON.stringify(account))
-      await router.push({ name: 'company.dashboard' })
+      await router.push({ name: getPostLoginRouteName() })
       return
     }
 

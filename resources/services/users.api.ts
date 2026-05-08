@@ -16,7 +16,7 @@ export const createCompanyUser = async <T>(payload: any): Promise<T> => {
 };
 
 export const updateCompanyUser = async <T>(id: number | string, payload: any): Promise<T> => {
-  const response = await http.put<T>(`/company/users/${id}`, payload);
+  const response = await http.put<T>(`/company/users/${id}/assign-roles`, payload);
   return response.data;
 };
 

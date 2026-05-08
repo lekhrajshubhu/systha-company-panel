@@ -30,8 +30,25 @@
                     </v-col>
                     <v-col cols="12" md="12">
                       <div class="text-body-2 text-medium-emphasis mb-1">Roles</div>
-                      <app-select-field v-model="form.roles" :items="roleOptions" multiple :rules="[required]"
-                        :loading="loadingRoles" aria-label="Roles" />
+                      <div v-if="loadingRoles" class="d-flex justify-center pa-4">
+                        <v-progress-circular indeterminate size="24" />
+                      </div>
+                      <div v-else>
+                        <div class="d-flex flex-wrap ga-4">
+                          <v-checkbox
+                            v-for="role in roleOptions"
+                            :key="role.id"
+                            v-model="form.roles"
+                            :label="role.name"
+                            :value="role.id"
+                            density="compact"
+                            hide-details="auto"
+                          />
+                        </div>
+                        <div v-if="submitted && form.roles.length === 0" class="text-caption text-error mt-1">
+                          Must select at least one role
+                        </div>
+                      </div>
                     </v-col>
                   </v-row>
                 </v-card-text>
@@ -118,6 +135,7 @@ const form = ref({
 const submitting = ref(false)
 const loadingStaff = ref(false)
 const loadingRoles = ref(false)
+const submitted = ref(false)
 
 // validation rule helpers
 const required = (v: any) => {
@@ -138,12 +156,8 @@ const zipRules = [(v: any) => {
 }]
 
 const fallbackRoleOptions = [
-  { value: 1, label: 'Staff' },
-  { value: 2, label: 'Admin' },
-  { value: 3, label: 'Customer' },
-  { value: 4, label: 'Employee' },
-  { value: 5, label: 'Manager' },
-  { value: 6, label: 'Supervisor' },
+  { id: 2, name: 'Admin' },
+  { id: 5, name: 'Manager' },
 ]
 
 const roleOptions = ref(fallbackRoleOptions)
@@ -243,6 +257,7 @@ const isStep1Valid = computed(() => {
 
 
 const save = async () => {
+  submitted.value = true
 
   const { valid } = await formRef.value.validate()
   if (!valid) return
@@ -290,15 +305,16 @@ onMounted(() => {
 const loadRoleOptions = async (): Promise<void> => {
   loadingRoles.value = true
   try {
-    const options: any[] = await lookupCompanyRoles()
+    const response: any = await lookupCompanyRoles()
+    const options = response?.data ?? response
 
     console.log('Fetched role options:', options)
     roleOptions.value = options
-      .map((o: any) => {
-        const valueNum = typeof o.value === 'number' ? o.value : Number(o.value)
-        return { value: valueNum, label: o.label ?? String(o.value ?? '') }
-      })
-      .filter((o: any) => !Number.isNaN(o.value))
+      .map((o: any) => ({
+        id: o.id,
+        name: o.name
+      }))
+      .filter((o: any) => o.id && o.name)
 
     console.log('Processed role options:', roleOptions.value)
   } catch (error) {

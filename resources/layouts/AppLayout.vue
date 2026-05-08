@@ -104,7 +104,6 @@
             </div>
 
             <v-spacer />
-            {{ hasMultipleContexts }}
             <v-tooltip v-if="hasMultipleContexts" location="bottom">
                 <template #activator="{ props }">
                     <v-btn

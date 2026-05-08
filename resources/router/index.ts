@@ -4,7 +4,7 @@ import { TENANTPANEL_ACCOUNT_KEY } from "@/services/companyAuth";
 import { getAuthToken } from "@/services/authToken.storage";
 import { useAppContextStore } from "@/stores/appContext";
 import NotFoundPage from "@/pages/shared/NotFoundPage.vue";
-import { 
+import {
   AUTH_ACTIVE_CONTEXT_KEY, 
   AUTH_CONTEXTS_KEY, 
   AUTH_PENDING_CONTEXT_SELECTION_KEY,
@@ -12,6 +12,7 @@ import {
   saveActiveContext,
   type CompanyProfileData 
 } from "@/services/auth.api";
+import { getCompanySetupState } from "@/utils/companySetup";
 
 // Module-level cached promise for deduplication
 let profileSyncPromise: Promise<void> | null = null;
@@ -160,7 +161,53 @@ router.beforeEach(async (to) => {
 
   // Prevent logged in users from visiting login page
   if (isLoginRoute && token) {
-    return hasActiveContext ? { name: "company.dashboard" } : { name: "company.context-select" };
+    if (!hasActiveContext) return { name: "company.context-select" };
+    
+    // Check API response for setup status
+    const activeContext = localStorage.getItem(AUTH_ACTIVE_CONTEXT_KEY);
+    let apiCompleted = false;
+    
+    if (activeContext) {
+      try {
+        const parsed = JSON.parse(activeContext);
+        apiCompleted = Boolean(parsed?.profile_setup?.setup_completed);
+      } catch {
+        // Fallback to localStorage if parsing fails
+      }
+    }
+    
+    const { completed: localStorageCompleted } = getCompanySetupState();
+    const completed = apiCompleted || localStorageCompleted;
+    
+    return { name: completed ? "company.dashboard" : "company.setup" };
+  }
+
+  // Enforce company setup completion before allowing access to most routes.
+  if (requiresAuth && token && hasActiveContext) {
+    const { completed: localStorageCompleted } = getCompanySetupState();
+    
+    // Check API response for setup status
+    const activeContext = localStorage.getItem(AUTH_ACTIVE_CONTEXT_KEY);
+    let apiCompleted = false;
+    
+    if (activeContext) {
+      try {
+        const parsed = JSON.parse(activeContext);
+        apiCompleted = Boolean(parsed?.profile_setup?.setup_completed);
+      } catch {
+        // Fallback to localStorage if parsing fails
+      }
+    }
+    
+    const completed = apiCompleted || localStorageCompleted;
+    const setupAllowedRouteNames = new Set([
+      "company.setup",
+      "company.context-select",
+    ]);
+
+    if (!completed && !setupAllowedRouteNames.has(String(to.name ?? ""))) {
+      return { name: "company.setup" };
+    }
   }
 
   // Enforce context selection on protected routes (except context selector itself).

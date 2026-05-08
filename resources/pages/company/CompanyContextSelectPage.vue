@@ -22,7 +22,7 @@
           @click="selectContext(ctx)"
         >
           <template #prepend>
-            <v-avatar size="40" rounded="lg" color="surface-variant">
+            <v-avatar size="40" rounded="lg" color="surface-variant" class="mr-4">
               <v-img v-if="ctx.company?.logo" :src="ctx.company.logo" alt="Logo" cover />
               <span v-else class="text-caption font-weight-medium">
                 {{ getInitials(ctx.company?.name ?? 'Company') }}
@@ -34,13 +34,38 @@
             {{ ctx.company?.name || 'Company' }}
           </v-list-item-title>
           <v-list-item-subtitle>
-            Role: {{ (ctx.roles && ctx.roles[0]) || '—' }}
+            <div class="roles-row">
+              <template v-if="roleLabels(ctx).length === 1">
+                <v-chip label size="small" variant="tonal" color="primary" class="roles-chip">
+                  {{ roleLabels(ctx)[0] }}
+                </v-chip>
+              </template>
+              <template v-else-if="roleLabels(ctx).length > 1">
+                <v-chip label size="small" variant="tonal" color="primary" class="roles-chip">
+                  {{ roleLabels(ctx)[0] }}
+                </v-chip>
+                <v-chip label size="small" variant="tonal" color="secondary" class="roles-chip roles-chip-count">
+                  +{{ roleLabels(ctx).length - 1 }}
+                </v-chip>
+              </template>
+              <span v-else>—</span>
+            </div>
           </v-list-item-subtitle>
         </v-list-item>
       </v-list>
 
-      <div v-else class="text-body-2 text-medium-emphasis text-center">
-        No contexts available.
+      <div v-else class="text-center">
+        <div class="text-body-2 text-medium-emphasis mb-4">
+          No contexts available.
+        </div>
+        <v-btn
+          variant="outlined"
+          color="primary"
+          :loading="isLoggingOut"
+          @click="handleLogout"
+        >
+          Logout
+        </v-btn>
       </div>
     </div>
   </div>
@@ -57,14 +82,17 @@ import {
   selectCompanyContext,
   saveActiveContext,
   saveAuthToken,
+  logoutCompany,
   type LoginContext,
 } from '@/services/auth.api'
-import { TENANTPANEL_ACCOUNT_KEY } from '@/services/companyAuth'
+import { TENANTPANEL_ACCOUNT_KEY, clearAuthSession } from '@/services/companyAuth'
+import { getPostLoginRouteName } from '@/utils/companySetup'
 
 const router = useRouter()
 const errorMessage = ref('')
 const rawContexts = ref<LoginContext[]>([])
 const isSelecting = ref(false)
+const isLoggingOut = ref(false)
 
 const contexts = computed(() => rawContexts.value.filter((c) => c?.type === 'company' && c?.company?.code))
 
@@ -76,7 +104,7 @@ onMounted(() => {
     try {
       const parsed = JSON.parse(storedActiveContext)
       if (parsed && typeof parsed === 'object') {
-        router.replace({ name: 'company.dashboard' })
+        router.replace({ name: getPostLoginRouteName() })
         return
       }
     } catch {
@@ -109,6 +137,39 @@ const getInitials = (name: string): string => {
   if (parts.length === 0) return 'CO'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[1][0]).toUpperCase()
+}
+
+const roleLabels = (ctx: LoginContext): string[] => {
+  const roles = (ctx as any)?.roles
+  if (!Array.isArray(roles)) return []
+  return roles
+    .map((r: any) => {
+      if (typeof r === 'string') return r
+      if (!r || typeof r !== 'object') return ''
+      return String(r.label ?? r.value ?? r.name ?? '')
+    })
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+}
+
+const handleLogout = async () => {
+  if (isLoggingOut.value) return
+  
+  isLoggingOut.value = true
+  try {
+    // Call logout API to invalidate session on server
+    await logoutCompany()
+  } catch (error) {
+    // Even if API call fails, we should still clear local session
+    console.error('Logout API call failed:', error)
+  } finally {
+    // Always clear local session and redirect to login
+    clearAuthSession()
+    localStorage.removeItem(AUTH_ACTIVE_CONTEXT_KEY)
+    localStorage.removeItem(AUTH_CONTEXTS_KEY)
+    localStorage.removeItem(AUTH_PENDING_CONTEXT_SELECTION_KEY)
+    await router.push({ name: 'company.login' })
+  }
 }
 
 const selectContext = async (ctx: LoginContext) => {
@@ -168,7 +229,7 @@ const selectContext = async (ctx: LoginContext) => {
     localStorage.setItem(TENANTPANEL_ACCOUNT_KEY, JSON.stringify(account))
     localStorage.removeItem(AUTH_PENDING_CONTEXT_SELECTION_KEY)
 
-    await router.push({ name: 'company.dashboard' })
+    await router.push({ name: getPostLoginRouteName() })
   } catch (e) {
     errorMessage.value = e instanceof Error ? e.message : 'Unable to select context. Please try again.'
   } finally {
@@ -213,5 +274,21 @@ const selectContext = async (ctx: LoginContext) => {
 .context-item {
   cursor: pointer;
   border-radius: $radius-md;
+}
+
+.roles-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-height: 22px; // keeps row height stable when there are no chips
+}
+
+.roles-chip {
+  max-width: 100%;
+}
+
+.roles-chip-count {
+  font-variant-numeric: tabular-nums;
 }
 </style>

@@ -62,7 +62,7 @@
                     <div>
                       <app-text-field v-model="form.plans.monthly.amount" label="Monthly Price (USD *)"
                         label-class="field-label" placeholder="0.00" type="number" min="0" step="0.01"
-                        hide-details="auto" :rules="priceRules" />
+                        hide-details="auto" :rules="priceRules" :readonly="!!form.plans.monthly.stripePriceId" />
 
 	                      <div v-if="form.plans.monthly.stripePriceId" class="mt-3">
                           <v-chip label color="primary">
@@ -76,7 +76,7 @@
                     <div>
                       <app-text-field v-model="form.plans.yearly.amount" label="Yearly Price (USD *)"
                         label-class="field-label" placeholder="0.00" type="number" min="0" step="0.01"
-                        hide-details="auto" :rules="priceRules" />
+                        hide-details="auto" :rules="priceRules" :readonly="!!form.plans.yearly.stripePriceId" />
 
 	                      <div v-if="form.plans.yearly.stripePriceId" class="mt-3">
                           <v-chip label color="primary">
@@ -196,26 +196,26 @@ const pickPlanPrice = (plan: any, recurring: 'month' | 'year') => {
 const prefillFromPlanDetail = (plan: any) => {
   form.value.name = plan?.name ?? ''
   form.value.highlight = plan?.highlight ?? ''
-  form.value.features = plan?.description ?? ''
+  form.value.features = plan?.features ?? plan?.description ?? ''
   form.value.status = plan?.status ?? form.value.status
 
-  form.value.stripeProductId = plan?.stripe_product_id ?? plan?.stripeProductId ?? plan?.stripe_product ?? ''
+  form.value.stripeProductId = plan?.stripeProductId ?? plan?.stripe_product ?? ''
 
-  const monthly = pickPlanPrice(plan, 'month')
-  const yearly = pickPlanPrice(plan, 'year')
+  const monthly = plan?.prices?.month
+  const yearly = plan?.prices?.year
 
   if (monthly) {
     form.value.plans.monthly.recurring = 'month'
-    form.value.plans.monthly.amount = String(monthly?.price ?? form.value.plans.monthly.amount ?? '0.00')
-    form.value.plans.monthly.currency = monthly?.currency ?? form.value.plans.monthly.currency ?? 'USD'
-    form.value.plans.monthly.stripePriceId = monthly?.stripe_price_id ?? monthly?.stripePriceId ?? form.value.plans.monthly.stripePriceId ?? ''
+    form.value.plans.monthly.amount = String(monthly?.amount ?? '0.00')
+    form.value.plans.monthly.currency = monthly?.currency ?? 'USD'
+    form.value.plans.monthly.stripePriceId = monthly?.stripePriceId ?? monthly?.stripe_price_id ?? ''
   }
 
   if (yearly) {
     form.value.plans.yearly.recurring = 'year'
-    form.value.plans.yearly.amount = String(yearly?.price ?? form.value.plans.yearly.amount ?? '0.00')
-    form.value.plans.yearly.currency = yearly?.currency ?? form.value.plans.yearly.currency ?? 'USD'
-    form.value.plans.yearly.stripePriceId = yearly?.stripe_price_id ?? yearly?.stripePriceId ?? form.value.plans.yearly.stripePriceId ?? ''
+    form.value.plans.yearly.amount = String(yearly?.amount ?? '0.00')
+    form.value.plans.yearly.currency = yearly?.currency ?? 'USD'
+    form.value.plans.yearly.stripePriceId = yearly?.stripePriceId ?? yearly?.stripe_price_id ?? ''
   }
 }
 

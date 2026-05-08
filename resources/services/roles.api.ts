@@ -6,7 +6,7 @@ export type LookupOption = {
 };
 
 export const lookupCompanyRoles = async (): Promise<LookupOption[]> => {
-  const response = await http.get(`/roles/lookup`, { params: { scope: 'company' } });
+  const response = await http.get(`/company/role-lookups`);
   const payload = (response as any)?.data ?? response;
   return (payload as any)?.data ?? payload;
 };

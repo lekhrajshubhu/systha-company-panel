@@ -26,6 +26,6 @@ export const updateCompanyPlan = async <T>(id: number | string, payload: any): P
 };
 
 export const deleteCompanyPlan = async <T>(id: number | string): Promise<T> => {
-  const response = await http.delete<T>(`/company/plans/${id}`);
+  const response = await http.delete<T>(`/company/plans/${id}/delete`);
   return response.data;
 };
