@@ -112,7 +112,7 @@
 import { computed, onMounted, ref } from "vue";
 import AppCard from "@/components/AppCard.vue";
 import RichText from "@/components/RichText.vue";
-import { getEmailTemplates, getEmailTemplateDetail } from "@/services/emailTemplates.api";
+import { getEmailTemplates, getEmailTemplateDetail, storeEmailTemplate, updateEmailTemplate } from "@/services/emailTemplates.api";
 import AppPageHeader from "@/components/AppPageHeader.vue";
 
 type EmailTemplateItem = {
@@ -241,12 +241,18 @@ const saveEmailTemplate = async () => {
     };
 
     if (selectedEmailTemplate.value.id) {
-      const updated: any = await getEmailTemplateDetail(selectedEmailTemplate.value.id);
-      const updatedId = (updated?.data?.id) ?? updated?.id ?? selectedEmailTemplate.value.id;
-      await loadEmailTemplates(updatedId);
+      // Update existing template
+      await updateEmailTemplate(selectedEmailTemplate.value.id, payload);
     } else {
-      await loadEmailTemplates();
+      // Store new template
+      const response: any = await storeEmailTemplate(payload);
+      if (response?.data?.id) {
+        selectedEmailTemplate.value.id = response.data.id;
+      }
     }
+    
+    // Reload templates to get latest data
+    await loadEmailTemplates();
   } catch (error) {
     console.error("Failed to save email template:", error);
   } finally {

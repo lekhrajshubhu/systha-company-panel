@@ -5,7 +5,6 @@ import { vuetify } from '@/plugins/vuetify'
 import { vuetifyProTipTap } from '@/plugins/tiptap'
 import { startTokenAutoRefresh } from '@/services/companyAuth'
 import 'vuetify/styles'
-import 'vuetify-pro-tiptap/style.css'
 import '@/styles/main.scss'
 import { router } from './router'
 
@@ -15,7 +14,9 @@ app.use(createPinia())
 app.use(vuetify)
 app.use(router)
 app.use(vuetifyProTipTap)
+
 ;(app.config as any).unwrapInjectedRef = true
+
 app.mount('#app')
 
-startTokenAutoRefresh()
+// startTokenAutoRefresh()

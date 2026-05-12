@@ -21,7 +21,11 @@ import { useModalStore } from "@/stores/modal";
 import AppFlatButton from "@/components/AppFlatButton.vue";
 import { applicationApproval } from "@/services/vendor-applications.api";
 
-const props = defineProps<{ vendor?: { name?: string } }>();
+const props = defineProps<{ 
+    vendor?: { name?: string },
+    applicationId?: string | number,
+    onSuccess?: () => void
+}>();
 
 const vendorName = computed(() => props.vendor?.name || 'this vendor');
 
@@ -48,19 +52,20 @@ const onSubmit = async () => {
     };
 
     try {
-        const idParam = route.params.id;
-        if (idParam == null || Array.isArray(idParam)) {
-            throw new Error("Missing vendor application id in route params.");
+        const idParam = props.applicationId;
+        if (idParam == null) {
+            throw new Error("Missing vendor application id.");
         }
 
         const id = Number(idParam);
         if (!Number.isInteger(id)) {
-            throw new Error("Invalid vendor application id in route params.");
+            throw new Error("Invalid vendor application id.");
         }
 
         await applicationApproval(id, payload);
 
         emit("success");
+        props.onSuccess?.();
         close();
     } catch (error) {
         console.error("Failed to approve vendor:", error);

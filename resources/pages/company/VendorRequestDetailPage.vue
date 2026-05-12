@@ -183,9 +183,9 @@ function onApprove() {
         VendorApprovalForm,
         {
             vendor: vendor.value,
-            onSubmit: (payload: Record<string, unknown>) => {
-                console.log('Approval submitted for vendor:', vendor.value.id, payload);
-                // TODO: Call approval API with payload
+            applicationId: route.params.id,
+            onSuccess: async () => {
+                await fetchVendor();
             },
         },
         {
@@ -200,9 +200,9 @@ function onReject() {
     modal.open(
         VendorRejectionForm,
         {
-            onSubmit: (payload: Record<string, unknown>) => {
-                console.log('Rejection submitted for vendor:', vendor.value.id, payload);
-                // TODO: Call rejection API with payload
+            applicationId: route.params.id,
+            onSuccess: async () => {
+                await fetchVendor();
             },
         },
         {

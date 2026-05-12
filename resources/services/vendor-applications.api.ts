@@ -14,3 +14,8 @@ export const applicationApproval = async <T>(id: number | string, payload: any):
   const response = await http.post<T>(`company/vendor-applications/${id}/approve`, payload);
   return response.data;
 };
+
+export const applicationRejection = async <T>(id: number | string, payload: any): Promise<T> => {
+  const response = await http.post<T>(`company/vendor-applications/${id}/reject`, payload);
+  return response.data;
+};
